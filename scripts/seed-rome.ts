@@ -558,9 +558,9 @@ async function main() {
       endDate: new Date(`${YEAR}-12-05`),
       currency: "EUR",
       // Estimation combinée (Rome + vols/train), convertie en EUR (~0.65 EUR/CAD) :
-      // Nicolas ~1374€ (Rome) + ~1014€ (vol A/R ~1200 $CA + bagages ~360 $CA = 1560 $CA, convertis)
-      // + Ivana ~1341€ (Rome + train) ≈ 3730€
-      budget: 3730,
+      // Nicolas ~1374€ (Rome) + 1014€ (vol A/R ~1200 $CA + bagages ~360 $CA = 1560 $CA, convertis)
+      // + Ivana ~1341€ (Rome + train) = 3729€
+      budget: 3729,
       inviteCode,
       members: {
         create: [
