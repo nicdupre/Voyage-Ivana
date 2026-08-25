@@ -23,6 +23,16 @@ npm run dev
 
 Ouvrir [http://localhost:3000](http://localhost:3000).
 
+### Charger le voyage à Rome (Nicolas & Ivana)
+
+Un script recrée automatiquement ce voyage précis (itinéraire complet du 28 nov. au 5 déc., budget cible, checklist des réservations) :
+
+```bash
+npm run seed:rome
+```
+
+Il affiche ensuite le code d'invitation et le lien à partager. Le script ne fait rien s'il existe déjà un voyage portant ce nom (pas de doublons).
+
 ## Commandes utiles
 
 - `npm run dev` — serveur de développement
