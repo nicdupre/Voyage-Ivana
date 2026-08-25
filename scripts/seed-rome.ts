@@ -38,7 +38,7 @@ const itinerary: ItineraryInput[] = [
     date: `${YEAR}-11-28`,
     time: "12:45",
     title: "Décollage YQB → Rome FCO",
-    notes: "Nicolas · Vol Air Canada · 1 escale · 13h10 de voyage total. Coût estimé : ~1200 $ CA (A/R).",
+    notes: "Nicolas · Vol Air Canada · 1 escale · 13h10 de voyage total. Coût estimé : ~740 $ CA (A/R).",
   },
   {
     date: `${YEAR}-11-28`,
@@ -485,7 +485,7 @@ const itinerary: ItineraryInput[] = [
     date: `${YEAR}-12-05`,
     time: "11:15",
     title: "Décollage FCO → Québec YQB",
-    notes: "Nicolas · Air Canada, 1 escale, 15h16, arrivée 20h31. Coût : N ~1200 $ CA (retour inclus dans A/R).",
+    notes: "Nicolas · Air Canada, 1 escale, 15h16, arrivée 20h31. Coût : N ~740 $ CA (retour inclus dans A/R).",
   },
   {
     date: `${YEAR}-12-05`,
@@ -503,7 +503,7 @@ const itinerary: ItineraryInput[] = [
 
 const checklist: string[] = [
   "① Concert Gonfalone — 2 déc. 20h30 — oratoriogonfalone.eu ou classictic.com · ~30–52 € · vérifier programme décembre",
-  "② Vol Air Canada — confirmer le paiement · ~1200 $ CA · tarif Basic",
+  "② Vol Air Canada — confirmer le paiement · 1 011 $ CA · tarif Basic",
   "③ Train Ivana aller — trenitalia.com ou italo.it · 29 nov. matin · Santhia → Termini · ~50–70 €",
   "④ Train Ivana retour — trenitalia.com ou italo.it · 5 déc. · Termini → Santhia · ~50–70 €",
   "⑤ Hôtel — 2 chambres — Condominio Monti Boutique Hotel · condominiomonti.com · 29 nov.–5 déc.",
@@ -559,9 +559,9 @@ async function main() {
       endDate: new Date(`${YEAR}-12-05`),
       currency: "EUR",
       // Estimation combinée (Rome + vols/train), convertie en EUR (~0.65 EUR/CAD) :
-      // Nicolas ~1374€ (Rome) + 1014€ (vol A/R ~1200 $CA + bagages ~360 $CA = 1560 $CA, convertis)
-      // + Ivana ~1341€ (Rome + train) = 3729€
-      budget: 3729,
+      // Nicolas ~1374€ (Rome) + 715€ (vol A/R ~740 $CA + bagages ~360 $CA = 1100 $CA, convertis)
+      // + Ivana ~1341€ (Rome + train) = 3430€
+      budget: 3430,
       inviteCode,
       members: {
         create: [
