@@ -529,6 +529,26 @@ const checklist: string[] = [
   "⑬ Da Enzo al 29 — dîner adieu jeu 3 — Via dei Vascellari 29 · Trastevere · réserver",
 ];
 
+// Bagages — Météo & Vêtements (4–14 °C, ~11 °C en journée, quelques averses brèves)
+const packingGeneral: string[] = [
+  "T-shirt respirant (couche de base, musées surchauffés)",
+  "Pull en laine ou polaire légère (couche intermédiaire)",
+  "Manteau / doudoune compacte (extérieurs, marches nocturnes, 8–11 °C le soir)",
+  "Coupe-vent imperméable + parapluie de poche (averses brèves mais franches)",
+  "Chaussures de marche à semelle antidérapante (sanpietrini glissants mouillés — pas de talons)",
+  "Veste légère supplémentaire pour San Clemente & Mithraeum (niveaux souterrains humides, ~14 °C)",
+  "Tenue décontractée-soignée pour la soirée Gonfalone (pas de code vestimentaire imposé)",
+  "Chapeau + gants légers (utiles matin/soir)",
+];
+
+const packingIvana: string[] = [
+  "Semelles antidérapantes (sanpietrini et dalles de marbre glissants)",
+  "Veste sans capuche volumineuse (facilite l'entrée/sortie des musées)",
+  "Écharpe chaude",
+  "Couche chaude supplémentaire pour San Clemente (niveau inférieur froid et humide)",
+  "Collation sucrée dans le sac chaque jour (glycémie)",
+];
+
 async function main() {
   const existing = await prisma.trip.findFirst({ where: { name: TRIP_NAME } });
   if (existing) {
@@ -588,6 +608,26 @@ async function main() {
     })),
   });
   console.log(`${checklist.length} tâches de réservation ajoutées.`);
+
+  const ivana = trip.members.find((m) => m.name === "Ivana");
+  await prisma.checklistItem.createMany({
+    data: [
+      ...packingGeneral.map((title, index) => ({
+        tripId: trip.id,
+        title,
+        category: "packing",
+        order: index,
+      })),
+      ...packingIvana.map((title, index) => ({
+        tripId: trip.id,
+        title,
+        category: "packing",
+        assignedToId: ivana?.id ?? null,
+        order: packingGeneral.length + index,
+      })),
+    ],
+  });
+  console.log(`${packingGeneral.length + packingIvana.length} tâches de bagages ajoutées.`);
 
   console.log("\nTerminé.");
   console.log(`Lien à partager avec Ivana : /trip/${trip.id}/join`);
