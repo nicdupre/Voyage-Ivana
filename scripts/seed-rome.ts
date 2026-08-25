@@ -38,7 +38,7 @@ const itinerary: ItineraryInput[] = [
     date: `${YEAR}-11-28`,
     time: "12:45",
     title: "Décollage YQB → Rome FCO",
-    notes: "Nicolas · Vol Air Canada · 1 escale · 13h10 de voyage total. Coût estimé : ~1200 $ CA (A/R).",
+    notes: "Nicolas · Vol Air Canada · 1 escale · 13h10 de voyage total. Coût estimé : ~740 $ CA (A/R).",
   },
   {
     date: `${YEAR}-11-28`,
@@ -283,7 +283,7 @@ const itinerary: ItineraryInput[] = [
     title: "Armando al Pantheon",
     location: "Salita dei Crescenzi 31",
     notes:
-      "Déjeuner. 2 min du Panthéon, réserver plusieurs semaines à l'avance. ⚠️ Repas complet — 5h30 d'écart jusqu'à la fin du spectacle du soir. Collation sucrée pour Ivana aux entractes. Coût : N ~22 €, I ~22 €.",
+      "Déjeuner. 2 min du Panthéon, réserver plusieurs semaines à l'avance. ⚠️ Repas complet — long écart jusqu'au dîner de 19h30 (~7h) : prévoir une collation sucrée pour Ivana dans l'après-midi. Coût : N ~22 €, I ~22 €.",
   },
   {
     date: `${YEAR}-12-02`,
@@ -440,13 +440,13 @@ const itinerary: ItineraryInput[] = [
     time: "21:00",
     title: "Castel Sant'Angelo illuminé + Ponte Sant'Angelo",
     notes:
-      "Nicolas (+ Ivana si en forme) · Marche nocturne, 10 min à pied depuis Prati, 30 min, gratuit, Nicolas seul. Le monument le plus spectaculaire de Rome la nuit — forteresse illuminée en ambre, anges du Bernin sur le pont, reflet dans le Tibre, vue sur Saint-Pierre au fond. Taxi retour depuis le pont. Ivana prépare ses bagages pendant ce temps.",
+      "Nicolas (+ Ivana si en forme) · Marche nocturne, ~20 min à pied depuis Trastevere en longeant le Tibre, 30 min sur place, gratuit, Nicolas seul. Le monument le plus spectaculaire de Rome la nuit — forteresse illuminée en ambre, anges du Bernin sur le pont, reflet dans le Tibre, vue sur Saint-Pierre au fond. Taxi retour depuis le pont. Ivana prépare ses bagages pendant ce temps.",
   },
   {
     date: `${YEAR}-12-04`,
     time: "21:30",
     title: "Ivana rentre à l'hôtel · Prépare ses bagages",
-    notes: "Taxi Prati → hôtel, 5 min. Billet train en main. Commander taxi itTaxi pour 8h45.",
+    notes: "Taxi Trastevere → hôtel, ~15 min. Billet train en main. Commander taxi itTaxi pour 8h45.",
   },
 
   // ── Sam 5 déc. — Départs ──
@@ -485,11 +485,11 @@ const itinerary: ItineraryInput[] = [
     date: `${YEAR}-12-05`,
     time: "11:15",
     title: "Décollage FCO → Québec YQB",
-    notes: "Nicolas · Air Canada, 1 escale, 15h16, arrivée 20h31. Coût : N ~1200 $ CA (retour inclus dans A/R).",
+    notes: "Nicolas · Air Canada, 1 escale, 15h16, arrivée 20h31. Coût : N ~740 $ CA (retour inclus dans A/R).",
   },
   {
     date: `${YEAR}-12-05`,
-    time: "14:30",
+    time: "15:30",
     title: "Arrivée Santhia · Doady attend 🏡",
     notes: "Ivana.",
   },
@@ -503,7 +503,7 @@ const itinerary: ItineraryInput[] = [
 
 const checklist: string[] = [
   "① Concert Gonfalone — 2 déc. 20h30 — oratoriogonfalone.eu ou classictic.com · ~30–52 € · vérifier programme décembre",
-  "② Vol Air Canada — confirmer le paiement · ~1200 $ CA · tarif Basic",
+  "② Vol Air Canada — confirmer le paiement · 1 011 $ CA · tarif Basic",
   "③ Train Ivana aller — trenitalia.com ou italo.it · 29 nov. matin · Santhia → Termini · ~50–70 €",
   "④ Train Ivana retour — trenitalia.com ou italo.it · 5 déc. · Termini → Santhia · ~50–70 €",
   "⑤ Hôtel — 2 chambres — Condominio Monti Boutique Hotel · condominiomonti.com · 29 nov.–5 déc.",
@@ -514,7 +514,7 @@ const checklist: string[] = [
   "⑩ Taxi Ivana 5 déc. — itTaxi · commander la veille au soir · 8h45",
   "⑪ La Carbonara — 3 dîners (dim 29, lun 30, mar 1) — Via della Madonna dei Monti 103 · réserver en même temps",
   "⑫ Armando al Pantheon — déjeuner mer 2 — Salita dei Crescenzi 31 · réserver plusieurs semaines à l'avance",
-  "⑬ Da Enzo al 29 — dîner adieu jeu 3 — Via dei Vascellari 29 · Trastevere · réserver",
+  "⑬ Da Enzo al 29 — dîner adieu ven 4 — Via dei Vascellari 29 · Trastevere · réserver",
 ];
 
 // Bagages — Météo & Vêtements (4–14 °C, ~11 °C en journée, quelques averses brèves)
@@ -559,9 +559,9 @@ async function main() {
       endDate: new Date(`${YEAR}-12-05`),
       currency: "EUR",
       // Estimation combinée (Rome + vols/train), convertie en EUR (~0.65 EUR/CAD) :
-      // Nicolas ~1374€ (Rome) + 1014€ (vol A/R ~1200 $CA + bagages ~360 $CA = 1560 $CA, convertis)
-      // + Ivana ~1341€ (Rome + train) = 3729€
-      budget: 3729,
+      // Nicolas ~1374€ (Rome) + 715€ (vol A/R ~740 $CA + bagages ~360 $CA = 1100 $CA, convertis)
+      // + Ivana ~1341€ (Rome + train) = 3430€
+      budget: 3430,
       inviteCode,
       members: {
         create: [

@@ -47,10 +47,6 @@ Il affiche ensuite le code d'invitation et le lien à partager. Le script ne fai
 
 1. Pousser le dépôt sur GitHub (déjà fait pour `nicdupre/Voyage-Ivana`).
 2. Sur [vercel.com](https://vercel.com), se connecter avec GitHub et importer le dépôt.
-3. Dans l'onglet **Storage** du projet Vercel, créer une base **Postgres** (Neon) et la connecter au projet — Vercel ajoute automatiquement `DATABASE_URL` dans les variables d'environnement.
-4. Déployer. Une fois le premier déploiement terminé, exécuter les migrations sur la base de production :
-   ```bash
-   DATABASE_URL="<url copiée depuis Vercel Storage>" npx prisma migrate deploy
-   DATABASE_URL="<url copiée depuis Vercel Storage>" npm run seed:rome   # optionnel : charge le voyage à Rome
-   ```
+3. Dans l'onglet **Storage** du projet Vercel, créer une base **Postgres** (Neon) et la connecter au projet — Vercel ajoute automatiquement `DATABASE_URL` (connexion pooler) et `DATABASE_URL_UNPOOLED` (connexion directe) dans les variables d'environnement. `prisma.config.ts` utilise cette seconde variable pour les commandes CLI (migrations) — voir ce fichier pour le détail.
+4. Déployer. Chaque déploiement (`vercel-build`) exécute automatiquement `prisma generate`, `prisma migrate deploy` et le seed du voyage à Rome (`npm run seed:rome`) avant le build Next.js — aucune commande manuelle n'est nécessaire après le premier déploiement.
 5. Ouvrir l'URL `*.vercel.app` sur chaque appareil, puis **Partager → Sur l'écran d'accueil** (Safari, iPhone/iPad) pour l'installer comme une app.
