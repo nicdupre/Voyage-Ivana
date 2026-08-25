@@ -3,6 +3,7 @@
  * Source: uploaded rome_complet.html (detailed itinerary + budget prepared ahead of time).
  * Run with: npx tsx scripts/seed-rome.ts
  */
+import "dotenv/config";
 import { prisma } from "../src/lib/prisma";
 import { generateInviteCode, colorForIndex } from "../src/lib/codes";
 

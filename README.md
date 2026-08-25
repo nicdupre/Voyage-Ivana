@@ -11,13 +11,15 @@ Application web pour organiser un voyage à plusieurs : itinéraire jour par jou
 ## Stack technique
 
 - [Next.js](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS v4
-- [Prisma](https://www.prisma.io) + SQLite (base de données locale, fichier `dev.db`)
+- [Prisma](https://www.prisma.io) + PostgreSQL
 
 ## Démarrer en local
 
+Nécessite une base PostgreSQL accessible (locale ou hébergée). Copier `.env.example` en `.env` et y renseigner `DATABASE_URL`, puis :
+
 ```bash
 npm install
-npx prisma migrate deploy   # crée dev.db à partir des migrations
+npx prisma migrate deploy   # crée les tables à partir des migrations
 npm run dev
 ```
 
@@ -41,6 +43,14 @@ Il affiche ensuite le code d'invitation et le lien à partager. Le script ne fai
 - `npx prisma studio` — explorer la base de données
 - `npx prisma migrate dev --name <nom>` — créer une nouvelle migration après avoir modifié `prisma/schema.prisma`
 
-## Déploiement
+## Déploiement (Vercel)
 
-SQLite convient pour un usage local ou un petit groupe sur un serveur avec disque persistant. Pour un déploiement sur une plateforme sans disque persistant (ex. Vercel), il faudra remplacer `DATABASE_URL` par une base hébergée (Postgres, Turso/LibSQL, etc.) — voir `prisma/schema.prisma` et `src/lib/prisma.ts`.
+1. Pousser le dépôt sur GitHub (déjà fait pour `nicdupre/Voyage-Ivana`).
+2. Sur [vercel.com](https://vercel.com), se connecter avec GitHub et importer le dépôt.
+3. Dans l'onglet **Storage** du projet Vercel, créer une base **Postgres** (Neon) et la connecter au projet — Vercel ajoute automatiquement `DATABASE_URL` dans les variables d'environnement.
+4. Déployer. Une fois le premier déploiement terminé, exécuter les migrations sur la base de production :
+   ```bash
+   DATABASE_URL="<url copiée depuis Vercel Storage>" npx prisma migrate deploy
+   DATABASE_URL="<url copiée depuis Vercel Storage>" npm run seed:rome   # optionnel : charge le voyage à Rome
+   ```
+5. Ouvrir l'URL `*.vercel.app` sur chaque appareil, puis **Partager → Sur l'écran d'accueil** (Safari, iPhone/iPad) pour l'installer comme une app.
