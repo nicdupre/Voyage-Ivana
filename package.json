@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "prisma migrate deploy && tsx scripts/seed-rome.ts && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && tsx scripts/seed-rome.ts && next build",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "prisma generate",
     "seed:rome": "tsx scripts/seed-rome.ts"
   },
   "dependencies": {
