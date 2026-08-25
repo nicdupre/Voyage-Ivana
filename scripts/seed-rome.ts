@@ -58,7 +58,7 @@ const itinerary: ItineraryInput[] = [
     date: `${YEAR}-11-29`,
     time: "07:55",
     title: "Atterrissage FCO · Leonardo Express → Termini",
-    notes: "Nicolas · Arrivée. Train FCO→Termini : 32 min, 14 €. Taxi Termini→hôtel : ~8 €. Coût total : ~22 €.",
+    notes: "Nicolas · Arrivée. Train FCO → Termini : 32 min, 14 €. Taxi Termini → hôtel : ~8 €. Coût total : ~22 €.",
   },
   {
     date: `${YEAR}-11-29`,
@@ -94,7 +94,7 @@ const itinerary: ItineraryInput[] = [
     time: "13:00",
     title: "Retour à l'hôtel · Check-in · Installation en chambre",
     notes:
-      "Nicolas · Métro A→Termini (passe CIS), taxi Termini→hôtel (5 min). Bagages déposés le matin — chambre dispo ou livrée à l'arrivée.",
+      "Nicolas · Métro A → Termini (passe CIS), taxi Termini → hôtel (5 min). Bagages déposés le matin — chambre dispo ou livrée à l'arrivée.",
   },
   {
     date: `${YEAR}-11-29`,
@@ -304,7 +304,7 @@ const itinerary: ItineraryInput[] = [
     time: "17:30",
     title: "Crypte des Capucins",
     notes:
-      "Nicolas (+ Ivana si en forme) · Optionnel. Taxi San Clemente→Via Veneto, 12 min, ~45 min. 3 700 squelettes de moines en arabesques. Méditatif et baroque. Jusqu'à 18h30. Coût : N ~10 €, I ~10 € (optionnel), taxi ~12 € (partagé).",
+      "Nicolas (+ Ivana si en forme) · Optionnel. Taxi San Clemente → Via Veneto, 12 min, ~45 min. 3 700 squelettes de moines en arabesques. Méditatif et baroque. Jusqu'à 18h30. Coût : N ~10 €, I ~10 € (optionnel), taxi ~12 € (partagé).",
   },
   {
     date: `${YEAR}-12-02`,
@@ -318,12 +318,6 @@ const itinerary: ItineraryInput[] = [
     title: "La Carbonara · Monti",
     location: "Via della Madonna dei Monti 103",
     notes: "Table réservée. Coût : N ~33 €, I ~33 €.",
-  },
-  {
-    date: `${YEAR}-12-02`,
-    time: "21:00",
-    title: "Fontaine de Trevi + Panthéon de nuit",
-    notes: "Nicolas (optionnel pour Ivana) · Marche nocturne, taxi depuis Monti 10 min, 45–60 min, gratuit.",
   },
 
   // ── Jeu 3 déc. — Jour 4 · ★ Gonfalone ──
@@ -359,7 +353,7 @@ const itinerary: ItineraryInput[] = [
     title: "Mithraeum du Circus Maximus — Rome souterraine",
     location: "Viale Aventino",
     notes:
-      "Nicolas (+ Ivana si en forme) · Visite guidée optionnelle. Taxi 12 min. Réserver sur fragrancetour.com ou romeguide.it. Temple mithraïque du IIe s. enfoui sous les tribunes du Circus Maximus. Relief en marbre du taurobole. ~1h30, ~15–20 €/pers., accessible à Ivana (de plain-pied). Jusqu'à 16h. Coût : N ~18 €, I ~18 € (optionnel), taxi A/R ~24 € (partagé).",
+      "Nicolas (+ Ivana si en forme) · Visite guidée optionnelle. Taxi 12 min. Réserver sur romeguide.it (à confirmer — vérifier l'offre exacte avant de payer). Temple mithraïque du IIe s. enfoui sous les tribunes du Circus Maximus. Relief en marbre du taurobole. ~1h30, ~15–20 €/pers, accessible à Ivana (de plain-pied). Jusqu'à 16h. Coût : N ~18 €, I ~18 € (optionnel), taxi A/R ~24 € (partagé).",
   },
   {
     date: `${YEAR}-12-03`,
@@ -381,7 +375,7 @@ const itinerary: ItineraryInput[] = [
     title: "★ Concert — Oratorio del Gonfalone",
     location: "Via del Gonfalone 32, près de Campo de' Fiori",
     notes:
-      "~1h30. Joyau Renaissance de 1544, fresques maniéristes couvrant tous les murs. Roma Bànsuri Ensemble — orchestre de flûtes · Vivaldi (L'Inverno), Mozart, Ponchielli (Danse des Heures), Grieg (Suite Holberg), Rossini, Haendel, Strauss · Dir. Francesco Leonardi. ⚠️ Collation sucrée pour Ivana avant le départ (pas d'entracte habituel). Réserver : classictic.com ou info@oratoriogonfalone.eu, tél. 06 6875952, posto unico 30 €. Coût : N+I 30 € chacun, taxi ~10 € (partagé).",
+      "~1h30. Joyau Renaissance de 1544, fresques maniéristes couvrant tous les murs. Roma Bansuri Ensemble — orchestre de flûtes · Vivaldi (L'Inverno), Mozart, Ponchielli (Danse des Heures), Grieg (Suite Holberg), Rossini, Haendel, Strauss · Dir. Francesco Leonardi. ⚠️ Collation sucrée pour Ivana avant le départ (pas d'entracte habituel). Réserver : classictic.com ou info@oratoriogonfalone.eu, tél. 06 6875952, posto unico 30 €. Coût : N+I 30 € chacun, taxi ~10 € (partagé).",
   },
   {
     date: `${YEAR}-12-03`,
@@ -408,7 +402,7 @@ const itinerary: ItineraryInput[] = [
     time: "10:00",
     title: "Basilique Saint-Pierre",
     notes:
-      "Nicolas + Ivana · Métro A→Ottaviano, 10 min depuis Termini, puis 12 min à pied. Intérieur uniquement, pas les musées, tenue couverte. Ivana peut s'asseoir dans la basilique pendant que Nicolas monte à la coupole (optionnel, 8 €). Passe CIS. Jusqu'à 12h. Coût : N 8 € (coupole).",
+      "Nicolas + Ivana · Métro A → Ottaviano, 10 min depuis Termini, puis 12 min à pied. Intérieur uniquement, pas les musées, tenue couverte. Ivana peut s'asseoir dans la basilique pendant que Nicolas monte à la coupole (optionnel, 8 €). Passe CIS. Jusqu'à 12h. Coût : N 8 € (coupole).",
   },
   {
     date: `${YEAR}-12-04`,
@@ -438,7 +432,7 @@ const itinerary: ItineraryInput[] = [
     title: "Dîner d'adieu · Da Enzo al 29 · Trastevere",
     location: "Via dei Vascellari 29",
     notes:
-      "Nicolas + Ivana · Taxi Gianicolo→Trastevere, 15 min, table réservée. Dernier grand dîner ensemble avant le départ du lendemain matin. Coût : N ~33 €, I ~33 €.",
+      "Nicolas + Ivana · Taxi Gianicolo → Trastevere, 15 min, table réservée. Dernier grand dîner ensemble avant le départ du lendemain matin. Coût : N ~33 €, I ~33 €.",
   },
   {
     date: `${YEAR}-12-04`,
@@ -451,7 +445,7 @@ const itinerary: ItineraryInput[] = [
     date: `${YEAR}-12-04`,
     time: "21:30",
     title: "Ivana rentre à l'hôtel · Prépare ses bagages",
-    notes: "Taxi Prati→hôtel, 5 min. Billet train en main. Commander taxi itTaxi pour 8h45.",
+    notes: "Taxi Prati → hôtel, 5 min. Billet train en main. Commander taxi itTaxi pour 8h45.",
   },
 
   // ── Sam 5 déc. — Départs ──
