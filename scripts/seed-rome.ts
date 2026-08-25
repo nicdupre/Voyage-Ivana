@@ -283,7 +283,7 @@ const itinerary: ItineraryInput[] = [
     title: "Armando al Pantheon",
     location: "Salita dei Crescenzi 31",
     notes:
-      "Déjeuner. 2 min du Panthéon, réserver plusieurs semaines à l'avance. ⚠️ Repas complet — 5h30 d'écart jusqu'à la fin du spectacle du soir. Collation sucrée pour Ivana aux entractes. Coût : N ~22 €, I ~22 €.",
+      "Déjeuner. 2 min du Panthéon, réserver plusieurs semaines à l'avance. ⚠️ Repas complet — long écart jusqu'au dîner de 19h30 (~7h) : prévoir une collation sucrée pour Ivana dans l'après-midi. Coût : N ~22 €, I ~22 €.",
   },
   {
     date: `${YEAR}-12-02`,
@@ -440,13 +440,13 @@ const itinerary: ItineraryInput[] = [
     time: "21:00",
     title: "Castel Sant'Angelo illuminé + Ponte Sant'Angelo",
     notes:
-      "Nicolas (+ Ivana si en forme) · Marche nocturne, 10 min à pied depuis Prati, 30 min, gratuit, Nicolas seul. Le monument le plus spectaculaire de Rome la nuit — forteresse illuminée en ambre, anges du Bernin sur le pont, reflet dans le Tibre, vue sur Saint-Pierre au fond. Taxi retour depuis le pont. Ivana prépare ses bagages pendant ce temps.",
+      "Nicolas (+ Ivana si en forme) · Marche nocturne, ~20 min à pied depuis Trastevere en longeant le Tibre, 30 min sur place, gratuit, Nicolas seul. Le monument le plus spectaculaire de Rome la nuit — forteresse illuminée en ambre, anges du Bernin sur le pont, reflet dans le Tibre, vue sur Saint-Pierre au fond. Taxi retour depuis le pont. Ivana prépare ses bagages pendant ce temps.",
   },
   {
     date: `${YEAR}-12-04`,
     time: "21:30",
     title: "Ivana rentre à l'hôtel · Prépare ses bagages",
-    notes: "Taxi Prati → hôtel, 5 min. Billet train en main. Commander taxi itTaxi pour 8h45.",
+    notes: "Taxi Trastevere → hôtel, ~15 min. Billet train en main. Commander taxi itTaxi pour 8h45.",
   },
 
   // ── Sam 5 déc. — Départs ──
@@ -489,7 +489,7 @@ const itinerary: ItineraryInput[] = [
   },
   {
     date: `${YEAR}-12-05`,
-    time: "14:30",
+    time: "15:30",
     title: "Arrivée Santhia · Doady attend 🏡",
     notes: "Ivana.",
   },
@@ -514,7 +514,7 @@ const checklist: string[] = [
   "⑩ Taxi Ivana 5 déc. — itTaxi · commander la veille au soir · 8h45",
   "⑪ La Carbonara — 3 dîners (dim 29, lun 30, mar 1) — Via della Madonna dei Monti 103 · réserver en même temps",
   "⑫ Armando al Pantheon — déjeuner mer 2 — Salita dei Crescenzi 31 · réserver plusieurs semaines à l'avance",
-  "⑬ Da Enzo al 29 — dîner adieu jeu 3 — Via dei Vascellari 29 · Trastevere · réserver",
+  "⑬ Da Enzo al 29 — dîner adieu ven 4 — Via dei Vascellari 29 · Trastevere · réserver",
 ];
 
 // Bagages — Météo & Vêtements (4–14 °C, ~11 °C en journée, quelques averses brèves)
