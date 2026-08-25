@@ -1,0 +1,103 @@
+// Prisma schema for Voyage Ivana - shared travel planner
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Trip {
+  id          String   @id @default(cuid())
+  name        String
+  destination String?
+  startDate   DateTime?
+  endDate     DateTime?
+  currency    String   @default("EUR")
+  budget      Float?
+  inviteCode  String   @unique
+  createdAt   DateTime @default(now())
+
+  members    Member[]
+  itinerary  ItineraryItem[]
+  expenses   Expense[]
+  checklist  ChecklistItem[]
+  documents  TripDocument[]
+}
+
+model Member {
+  id       String   @id @default(cuid())
+  tripId   String
+  trip     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name     String
+  color    String   @default("#0ea5e9")
+  joinedAt DateTime @default(now())
+
+  paidExpenses   Expense[]       @relation("PaidBy")
+  expenseShares  Expense[]       @relation("SplitWith")
+  assignedTasks  ChecklistItem[] @relation("AssignedTo")
+
+  @@index([tripId])
+}
+
+model ItineraryItem {
+  id       String   @id @default(cuid())
+  tripId   String
+  trip     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  date     DateTime
+  time     String?
+  title    String
+  location String?
+  notes    String?
+  order    Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([tripId])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  description String
+  amount      Float
+  category    String   @default("Autre")
+  date        DateTime @default(now())
+  paidById    String?
+  paidBy      Member?  @relation("PaidBy", fields: [paidById], references: [id], onDelete: SetNull)
+  splitWith   Member[] @relation("SplitWith")
+  createdAt   DateTime @default(now())
+
+  @@index([tripId])
+}
+
+model ChecklistItem {
+  id           String   @id @default(cuid())
+  tripId       String
+  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  title        String
+  category     String   @default("todo")
+  done         Boolean  @default(false)
+  assignedToId String?
+  assignedTo   Member?  @relation("AssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([tripId])
+}
+
+model TripDocument {
+  id        String   @id @default(cuid())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  title     String
+  type      String   @default("autre")
+  note      String?
+  link      String?
+  createdAt DateTime @default(now())
+
+  @@index([tripId])
+}
