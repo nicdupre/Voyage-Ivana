@@ -162,7 +162,6 @@
     font-size: 0.85rem;
     color: var(--muted);
   }
-  #output-card { display: none; }
   #note-output {
     width: 100%;
     min-height: 360px;
@@ -274,7 +273,7 @@
   <div id="sections"></div>
 
   <div class="actions-bar">
-    <button class="primary" id="btn-generate">Générer la note</button>
+    <button class="primary" id="btn-generate">Aller à la note</button>
     <button class="ghost" id="btn-reset">Réinitialiser tout</button>
     <span class="toggle-row">
       <input type="checkbox" id="f-skip-empty" checked />
@@ -284,7 +283,7 @@
 
   <div class="card" id="output-card">
     <h2>Note générée</h2>
-    <p class="help">Copiez-collez ce texte dans Crystalnet, ou téléchargez-le en fichier .txt à joindre à un courriel.</p>
+    <p class="help">Se met à jour automatiquement pendant la dictée ou la saisie. Copiez-collez ce texte dans Crystalnet, ou téléchargez-le en fichier .txt à joindre à un courriel.</p>
     <textarea id="note-output" readonly></textarea>
     <div class="actions-bar" style="margin-bottom:0;">
       <button class="primary" id="btn-copy">Copier</button>
@@ -494,9 +493,12 @@
     interim.className = "interim";
     card.appendChild(interim);
 
+    textarea.addEventListener("input", refreshOutput);
+
     clearBtn.addEventListener("click", function () {
       textarea.value = "";
       textarea.focus();
+      refreshOutput();
     });
 
     micBtn.addEventListener("click", function () {
@@ -537,6 +539,7 @@
 
     recognition.onresult = function (event) {
       var interimText = "";
+      var appended = false;
       for (var i = event.resultIndex; i < event.results.length; i++) {
         var result = event.results[i];
         if (result.isFinal) {
@@ -544,12 +547,14 @@
           if (chunk) {
             var needsSpace = textarea.value && !/\s$/.test(textarea.value);
             textarea.value += (needsSpace ? " " : "") + chunk;
+            appended = true;
           }
         } else {
           interimText += result[0].transcript;
         }
       }
       interimEl.textContent = interimText;
+      if (appended) refreshOutput();
     };
 
     recognition.onerror = function (event) {
@@ -632,9 +637,17 @@
   var outputCard = document.getElementById("output-card");
   var outputEl = document.getElementById("note-output");
 
-  document.getElementById("btn-generate").addEventListener("click", function () {
+  function refreshOutput() {
     outputEl.value = buildNote();
-    outputCard.style.display = "block";
+  }
+
+  ["f-patient", "f-dossier", "f-date"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", refreshOutput);
+  });
+  document.getElementById("f-skip-empty").addEventListener("change", refreshOutput);
+
+  document.getElementById("btn-generate").addEventListener("click", function () {
+    refreshOutput();
     outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
@@ -679,13 +692,13 @@
     SECTIONS.forEach(function (section) {
       document.getElementById("section-" + section.id).value = "";
     });
-    outputCard.style.display = "none";
-    outputEl.value = "";
+    refreshOutput();
   });
 
   var todayField = document.getElementById("f-date");
   var today = new Date();
   todayField.value = today.getFullYear() + "-" + pad2(today.getMonth() + 1) + "-" + pad2(today.getDate());
+  refreshOutput();
 
   window.addEventListener("beforeunload", function (e) {
     var hasContent = SECTIONS.some(function (section) {
