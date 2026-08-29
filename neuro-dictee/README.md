@@ -47,14 +47,16 @@ erreurs récurrentes sur les mêmes mots. Deux leviers :
   de la note. Cette liste est sauvegardée dans le navigateur (uniquement des
   mots, jamais de données de patient) et reste disponible d'une session à
   l'autre — contrairement au reste du contenu.
-- **Glossaire de référence intégré**, sous le dictionnaire : une liste
-  intégrée (~140 termes) de symptômes, d'éléments d'examen neurologique, de
-  diagnostics et de médicaments courants en neurologie (nom générique et nom
-  commercial), cherchable sans les accents. Cliquer sur un terme le place
-  comme « terme correct » ; il ne reste qu'à taper ce que la dictée a compris
-  de travers à côté et cliquer sur Ajouter. Cette liste est intégrée au
-  fichier (aucun appel à un site externe) — elle ne devine pas ce que votre
-  micro a mal entendu, elle sert juste à retrouver vite la bonne orthographe.
+- **Glossaire de référence intégré**, sous le dictionnaire : plus de 450
+  termes répartis en 5 catégories — Abréviations, Médicaments (nom générique
+  ET nom commercial), Termes cliniques, Médecine interne, Chirurgies
+  fréquentes — cherchables sans les accents, avec une courte définition en
+  survol (info-bulle) sur chaque terme. Cliquer sur un terme le place comme
+  « terme correct » ; il ne reste qu'à taper ce que la dictée a compris de
+  travers à côté et cliquer sur Ajouter. Cette liste est intégrée au fichier
+  (aucun appel à un site externe) — elle ne devine pas ce que votre micro a
+  mal entendu, elle sert juste à retrouver vite la bonne orthographe. Le
+  contenu vient d'un glossaire de référence fourni par l'utilisateur.
 - **Langue de dictée** : essayez de basculer entre Français (Canada) et
   Français (France) dans le menu déroulant ; l'un des deux comprend parfois
   mieux un accent donné.
