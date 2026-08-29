@@ -189,6 +189,54 @@
     font-style: italic;
     margin: 0 0 8px;
   }
+  .glossary-block {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .glossary-block > label {
+    margin-bottom: 6px;
+  }
+  .glossary-results {
+    margin-top: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    display: none;
+  }
+  .glossary-results.visible { display: block; }
+  .glossary-category {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    margin: 8px 0 4px;
+  }
+  .glossary-category:first-child { margin-top: 0; }
+  .glossary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .glossary-chip {
+    font-size: 0.82rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--text);
+  }
+  .glossary-chip:hover {
+    border-color: var(--primary);
+    background: #fff;
+  }
+  .glossary-no-results {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
   .support-warning {
     display: none;
     border: 1px solid var(--danger);
@@ -267,6 +315,12 @@
       <input type="text" id="dict-new-from" placeholder="Mal transcrit (ex. : céfalée)" style="flex:1;" />
       <input type="text" id="dict-new-to" placeholder="Terme correct (ex. : céphalée)" style="flex:1;" />
       <button class="primary" id="dict-add" type="button">Ajouter</button>
+    </div>
+
+    <div class="glossary-block">
+      <label for="glossary-search">Glossaire de référence — cherchez un terme, cliquez dessus pour le mettre comme « terme correct » ci-dessus</label>
+      <input type="text" id="glossary-search" placeholder="Chercher (ex. : levetiracetam, migraine, aricept…)" />
+      <div id="glossary-results" class="glossary-results"></div>
     </div>
   </div>
 
@@ -442,6 +496,225 @@
     fromField.value = "";
     toField.value = "";
     fromField.focus();
+  });
+
+  var GLOSSARY = [
+    // Symptômes
+    { term: "céphalée", category: "Symptômes" },
+    { term: "migraine", category: "Symptômes" },
+    { term: "vertige", category: "Symptômes" },
+    { term: "étourdissement", category: "Symptômes" },
+    { term: "paresthésie", category: "Symptômes" },
+    { term: "engourdissement", category: "Symptômes" },
+    { term: "diplopie", category: "Symptômes" },
+    { term: "dysarthrie", category: "Symptômes" },
+    { term: "dysphagie", category: "Symptômes" },
+    { term: "aphasie", category: "Symptômes" },
+    { term: "ataxie", category: "Symptômes" },
+    { term: "tremblement", category: "Symptômes" },
+    { term: "hémiparésie", category: "Symptômes" },
+    { term: "hémiplégie", category: "Symptômes" },
+    { term: "syncope", category: "Symptômes" },
+    { term: "confusion", category: "Symptômes" },
+    { term: "désorientation", category: "Symptômes" },
+    { term: "amnésie", category: "Symptômes" },
+    { term: "spasticité", category: "Symptômes" },
+    { term: "myoclonie", category: "Symptômes" },
+    { term: "fasciculation", category: "Symptômes" },
+    { term: "douleur neuropathique", category: "Symptômes" },
+    { term: "ptosis", category: "Symptômes" },
+    { term: "nystagmus", category: "Symptômes" },
+    { term: "photophobie", category: "Symptômes" },
+    { term: "phonophobie", category: "Symptômes" },
+    { term: "acouphène", category: "Symptômes" },
+    { term: "anosmie", category: "Symptômes" },
+    // Examen neurologique
+    { term: "nerfs crâniens", category: "Examen neurologique" },
+    { term: "réflexes ostéotendineux", category: "Examen neurologique" },
+    { term: "signe de Babinski", category: "Examen neurologique" },
+    { term: "clonus", category: "Examen neurologique" },
+    { term: "proprioception", category: "Examen neurologique" },
+    { term: "pallesthésie", category: "Examen neurologique" },
+    { term: "dysmétrie", category: "Examen neurologique" },
+    { term: "adiadococinésie", category: "Examen neurologique" },
+    { term: "épreuve doigt-nez", category: "Examen neurologique" },
+    { term: "épreuve talon-genou", category: "Examen neurologique" },
+    { term: "signe de Romberg", category: "Examen neurologique" },
+    { term: "tonus musculaire", category: "Examen neurologique" },
+    { term: "champ visuel", category: "Examen neurologique" },
+    { term: "acuité visuelle", category: "Examen neurologique" },
+    { term: "motricité oculaire", category: "Examen neurologique" },
+    { term: "orientation temporo-spatiale", category: "Examen neurologique" },
+    // Diagnostics
+    { term: "accident vasculaire cérébral", category: "Diagnostics" },
+    { term: "ischémie cérébrale transitoire", category: "Diagnostics" },
+    { term: "hémorragie sous-arachnoïdienne", category: "Diagnostics" },
+    { term: "hématome sous-dural", category: "Diagnostics" },
+    { term: "thrombose veineuse cérébrale", category: "Diagnostics" },
+    { term: "épilepsie", category: "Diagnostics" },
+    { term: "crise tonico-clonique", category: "Diagnostics" },
+    { term: "crise d'absence", category: "Diagnostics" },
+    { term: "migraine avec aura", category: "Diagnostics" },
+    { term: "céphalée de tension", category: "Diagnostics" },
+    { term: "névralgie du trijumeau", category: "Diagnostics" },
+    { term: "sclérose en plaques", category: "Diagnostics" },
+    { term: "maladie de Parkinson", category: "Diagnostics" },
+    { term: "tremblement essentiel", category: "Diagnostics" },
+    { term: "dystonie", category: "Diagnostics" },
+    { term: "chorée", category: "Diagnostics" },
+    { term: "démence", category: "Diagnostics" },
+    { term: "maladie d'Alzheimer", category: "Diagnostics" },
+    { term: "démence à corps de Lewy", category: "Diagnostics" },
+    { term: "démence vasculaire", category: "Diagnostics" },
+    { term: "neuropathie périphérique", category: "Diagnostics" },
+    { term: "radiculopathie", category: "Diagnostics" },
+    { term: "syndrome du canal carpien", category: "Diagnostics" },
+    { term: "myélopathie cervicale", category: "Diagnostics" },
+    { term: "myasthénie grave", category: "Diagnostics" },
+    { term: "syndrome de Guillain-Barré", category: "Diagnostics" },
+    { term: "sclérose latérale amyotrophique", category: "Diagnostics" },
+    { term: "méningite", category: "Diagnostics" },
+    { term: "encéphalite", category: "Diagnostics" },
+    { term: "syndrome post-commotionnel", category: "Diagnostics" },
+    { term: "hydrocéphalie", category: "Diagnostics" },
+    // Médicaments (nom générique et nom commercial séparés)
+    { term: "lévétiracétam", category: "Médicaments" },
+    { term: "Keppra", category: "Médicaments" },
+    { term: "lamotrigine", category: "Médicaments" },
+    { term: "Lamictal", category: "Médicaments" },
+    { term: "valproate de sodium", category: "Médicaments" },
+    { term: "Épival", category: "Médicaments" },
+    { term: "carbamazépine", category: "Médicaments" },
+    { term: "Tegretol", category: "Médicaments" },
+    { term: "phénytoïne", category: "Médicaments" },
+    { term: "Dilantin", category: "Médicaments" },
+    { term: "topiramate", category: "Médicaments" },
+    { term: "Topamax", category: "Médicaments" },
+    { term: "gabapentine", category: "Médicaments" },
+    { term: "Neurontin", category: "Médicaments" },
+    { term: "prégabaline", category: "Médicaments" },
+    { term: "Lyrica", category: "Médicaments" },
+    { term: "oxcarbazépine", category: "Médicaments" },
+    { term: "Trileptal", category: "Médicaments" },
+    { term: "clobazam", category: "Médicaments" },
+    { term: "Frisium", category: "Médicaments" },
+    { term: "clonazépam", category: "Médicaments" },
+    { term: "Rivotril", category: "Médicaments" },
+    { term: "sumatriptan", category: "Médicaments" },
+    { term: "Imitrex", category: "Médicaments" },
+    { term: "rizatriptan", category: "Médicaments" },
+    { term: "Maxalt", category: "Médicaments" },
+    { term: "propranolol", category: "Médicaments" },
+    { term: "amitriptyline", category: "Médicaments" },
+    { term: "candésartan", category: "Médicaments" },
+    { term: "érénumab", category: "Médicaments" },
+    { term: "Aimovig", category: "Médicaments" },
+    { term: "lévodopa-carbidopa", category: "Médicaments" },
+    { term: "Sinemet", category: "Médicaments" },
+    { term: "pramipexole", category: "Médicaments" },
+    { term: "Mirapex", category: "Médicaments" },
+    { term: "ropinirole", category: "Médicaments" },
+    { term: "Requip", category: "Médicaments" },
+    { term: "rasagiline", category: "Médicaments" },
+    { term: "Azilect", category: "Médicaments" },
+    { term: "entacapone", category: "Médicaments" },
+    { term: "Comtan", category: "Médicaments" },
+    { term: "amantadine", category: "Médicaments" },
+    { term: "donépézil", category: "Médicaments" },
+    { term: "Aricept", category: "Médicaments" },
+    { term: "rivastigmine", category: "Médicaments" },
+    { term: "Exelon", category: "Médicaments" },
+    { term: "mémantine", category: "Médicaments" },
+    { term: "Ebixa", category: "Médicaments" },
+    { term: "interféron bêta-1a", category: "Médicaments" },
+    { term: "Avonex", category: "Médicaments" },
+    { term: "Rebif", category: "Médicaments" },
+    { term: "acétate de glatiramère", category: "Médicaments" },
+    { term: "Copaxone", category: "Médicaments" },
+    { term: "natalizumab", category: "Médicaments" },
+    { term: "Tysabri", category: "Médicaments" },
+    { term: "fingolimod", category: "Médicaments" },
+    { term: "Gilenya", category: "Médicaments" },
+    { term: "ocrélizumab", category: "Médicaments" },
+    { term: "Ocrevus", category: "Médicaments" },
+    { term: "tériflunomide", category: "Médicaments" },
+    { term: "Aubagio", category: "Médicaments" },
+    { term: "clopidogrel", category: "Médicaments" },
+    { term: "Plavix", category: "Médicaments" },
+    { term: "warfarine", category: "Médicaments" },
+    { term: "Coumadin", category: "Médicaments" },
+    { term: "apixaban", category: "Médicaments" },
+    { term: "Eliquis", category: "Médicaments" },
+    { term: "rivaroxaban", category: "Médicaments" },
+    { term: "Xarelto", category: "Médicaments" },
+    { term: "dabigatran", category: "Médicaments" },
+    { term: "Pradaxa", category: "Médicaments" },
+  ];
+  var GLOSSARY_CATEGORY_ORDER = ["Symptômes", "Examen neurologique", "Diagnostics", "Médicaments"];
+
+  function normalizeForSearch(str) {
+    return str
+      .normalize("NFD")
+      .replace(new RegExp("[̀-ͯ]", "g"), "")
+      .toLowerCase();
+  }
+
+  var glossarySearchEl = document.getElementById("glossary-search");
+  var glossaryResultsEl = document.getElementById("glossary-results");
+
+  function renderGlossaryResults(query) {
+    var normalizedQuery = normalizeForSearch(query.trim());
+    if (!normalizedQuery) {
+      glossaryResultsEl.classList.remove("visible");
+      glossaryResultsEl.innerHTML = "";
+      return;
+    }
+
+    var matches = GLOSSARY.filter(function (entry) {
+      return normalizeForSearch(entry.term).indexOf(normalizedQuery) !== -1;
+    }).slice(0, 60);
+
+    glossaryResultsEl.innerHTML = "";
+    glossaryResultsEl.classList.add("visible");
+
+    if (matches.length === 0) {
+      var none = document.createElement("p");
+      none.className = "glossary-no-results";
+      none.textContent = "Aucun terme trouvé.";
+      glossaryResultsEl.appendChild(none);
+      return;
+    }
+
+    GLOSSARY_CATEGORY_ORDER.forEach(function (category) {
+      var inCategory = matches.filter(function (entry) { return entry.category === category; });
+      if (inCategory.length === 0) return;
+
+      var heading = document.createElement("div");
+      heading.className = "glossary-category";
+      heading.textContent = category;
+      glossaryResultsEl.appendChild(heading);
+
+      var chips = document.createElement("div");
+      chips.className = "glossary-chips";
+      inCategory.forEach(function (entry) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "glossary-chip";
+        chip.textContent = entry.term;
+        chip.addEventListener("click", function () {
+          var toField = document.getElementById("dict-new-to");
+          var fromField = document.getElementById("dict-new-from");
+          toField.value = entry.term;
+          fromField.focus();
+        });
+        chips.appendChild(chip);
+      });
+      glossaryResultsEl.appendChild(chips);
+    });
+  }
+
+  glossarySearchEl.addEventListener("input", function () {
+    renderGlossaryResults(glossarySearchEl.value);
   });
 
   var sectionsEl = document.getElementById("sections");
