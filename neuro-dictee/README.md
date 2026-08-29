@@ -34,6 +34,26 @@ l'onglet du navigateur.
    le fichier à un courriel.
 5. Rien n'est sauvegardé : fermer ou actualiser la page efface tout.
 
+## Améliorer la qualité de la transcription
+
+La reconnaissance vocale du navigateur est un moteur généraliste : elle
+connaît mal le vocabulaire médical (médicaments, termes neuro) et fera des
+erreurs récurrentes sur les mêmes mots. Deux leviers :
+
+- **Dictionnaire de correction automatique** (carte dédiée dans l'outil) :
+  ajoutez chaque mot mal transcrit et sa bonne orthographe (ex. « céfalée » →
+  « céphalée », ou une expression mal comprise → un nom de médicament). La
+  correction s'applique automatiquement pendant la dictée et à la génération
+  de la note. Cette liste est sauvegardée dans le navigateur (uniquement des
+  mots, jamais de données de patient) et reste disponible d'une session à
+  l'autre — contrairement au reste du contenu.
+- **Langue de dictée** : essayez de basculer entre Français (Canada) et
+  Français (France) dans le menu déroulant ; l'un des deux comprend parfois
+  mieux un accent donné.
+
+Le texte dicté reste de toute façon éditable manuellement avant de générer
+la note.
+
 ## Confidentialité — à lire avant d'utiliser avec de vrais patients
 
 - Cette page elle-même n'envoie rien à aucun serveur.

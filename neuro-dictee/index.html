@@ -170,6 +170,26 @@
     font-size: 0.88rem;
     white-space: pre-wrap;
   }
+  .dict-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dict-row input { flex: 1; }
+  .dict-row .dict-arrow { color: var(--muted); }
+  .dict-row button {
+    color: var(--danger);
+    border-color: transparent;
+    background: transparent;
+    padding: 6px 10px;
+  }
+  .dict-empty {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: 0 0 8px;
+  }
   .support-warning {
     display: none;
     border: 1px solid var(--danger);
@@ -201,7 +221,7 @@
 
   <div class="banner">
     <strong>⚠️ Rien n'est enregistré.</strong>
-    Tout le contenu vit uniquement dans cet onglet : fermer ou actualiser la page efface tout. Relisez toujours le texte généré avant de l'utiliser au dossier — cet outil est une aide à la rédaction, pas un dispositif médical, et ne garantit pas l'exactitude clinique du contenu.
+    Tout le contenu patient vit uniquement dans cet onglet : fermer ou actualiser la page efface tout. Seul le dictionnaire de correction ci-dessous (des mots, sans donnée de patient) reste sauvegardé sur cet appareil. Relisez toujours le texte généré avant de l'utiliser au dossier — cet outil est une aide à la rédaction, pas un dispositif médical, et ne garantit pas l'exactitude clinique du contenu.
   </div>
 
   <div class="banner privacy">
@@ -237,6 +257,17 @@
           <option value="en-US">English (US)</option>
         </select>
       </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Dictionnaire de correction automatique</h2>
+    <p class="help">Ajoutez les mots ou expressions souvent mal transcrits (médicaments, termes neuro, etc.) : la correction s'applique automatiquement pendant la dictée et à la génération de la note. Cette liste (des mots seulement, aucune donnée de patient) est sauvegardée dans ce navigateur et reste disponible d'une session à l'autre.</p>
+    <div id="dictionary-rows"></div>
+    <div class="section-toolbar" style="margin-top:8px;">
+      <input type="text" id="dict-new-from" placeholder="Mal transcrit (ex. : céfalée)" style="flex:1;" />
+      <input type="text" id="dict-new-to" placeholder="Terme correct (ex. : céphalée)" style="flex:1;" />
+      <button class="primary" id="dict-add" type="button">Ajouter</button>
     </div>
   </div>
 
@@ -305,6 +336,114 @@
       help: "Investigations, traitement, suivi.",
     },
   ];
+
+  var DICT_STORAGE_KEY = "neuroDicteeCorrections";
+  var dictionary = loadDictionary();
+
+  function loadDictionary() {
+    try {
+      var raw = localStorage.getItem(DICT_STORAGE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveDictionary() {
+    try {
+      localStorage.setItem(DICT_STORAGE_KEY, JSON.stringify(dictionary));
+    } catch (e) {
+      // localStorage indisponible (navigation privée, quota) — les corrections restent actives pour cette session
+    }
+  }
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function applyCorrections(text) {
+    dictionary.forEach(function (entry) {
+      if (!entry.from) return;
+      try {
+        var pattern = "(?<![\\p{L}\\p{N}])" + escapeRegExp(entry.from) + "(?![\\p{L}\\p{N}])";
+        var re = new RegExp(pattern, "giu");
+        text = text.replace(re, entry.to);
+      } catch (e) {
+        // motif invalide, on l'ignore
+      }
+    });
+    return text;
+  }
+
+  var dictionaryRowsEl = document.getElementById("dictionary-rows");
+
+  function renderDictionary() {
+    dictionaryRowsEl.innerHTML = "";
+    if (dictionary.length === 0) {
+      var empty = document.createElement("p");
+      empty.className = "dict-empty";
+      empty.textContent = "Aucune correction ajoutée pour l'instant.";
+      dictionaryRowsEl.appendChild(empty);
+      return;
+    }
+    dictionary.forEach(function (entry, index) {
+      var row = document.createElement("div");
+      row.className = "dict-row";
+
+      var fromInput = document.createElement("input");
+      fromInput.type = "text";
+      fromInput.value = entry.from;
+      fromInput.addEventListener("change", function () {
+        dictionary[index].from = fromInput.value.trim();
+        saveDictionary();
+      });
+
+      var arrow = document.createElement("span");
+      arrow.className = "dict-arrow";
+      arrow.textContent = "→";
+
+      var toInput = document.createElement("input");
+      toInput.type = "text";
+      toInput.value = entry.to;
+      toInput.addEventListener("change", function () {
+        dictionary[index].to = toInput.value.trim();
+        saveDictionary();
+      });
+
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "✕";
+      removeBtn.title = "Supprimer cette correction";
+      removeBtn.addEventListener("click", function () {
+        dictionary.splice(index, 1);
+        saveDictionary();
+        renderDictionary();
+      });
+
+      row.appendChild(fromInput);
+      row.appendChild(arrow);
+      row.appendChild(toInput);
+      row.appendChild(removeBtn);
+      dictionaryRowsEl.appendChild(row);
+    });
+  }
+
+  renderDictionary();
+
+  document.getElementById("dict-add").addEventListener("click", function () {
+    var fromField = document.getElementById("dict-new-from");
+    var toField = document.getElementById("dict-new-to");
+    var from = fromField.value.trim();
+    var to = toField.value.trim();
+    if (!from || !to) return;
+    dictionary.push({ from: from, to: to });
+    saveDictionary();
+    renderDictionary();
+    fromField.value = "";
+    toField.value = "";
+    fromField.focus();
+  });
 
   var sectionsEl = document.getElementById("sections");
   var supportWarningEl = document.getElementById("support-warning");
@@ -401,7 +540,7 @@
       for (var i = event.resultIndex; i < event.results.length; i++) {
         var result = event.results[i];
         if (result.isFinal) {
-          var chunk = result[0].transcript.trim();
+          var chunk = applyCorrections(result[0].transcript.trim());
           if (chunk) {
             var needsSpace = textarea.value && !/\s$/.test(textarea.value);
             textarea.value += (needsSpace ? " " : "") + chunk;
@@ -450,7 +589,7 @@
   }
 
   function cleanText(text) {
-    return text
+    return applyCorrections(text)
       .replace(/[ \t]+/g, " ")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
