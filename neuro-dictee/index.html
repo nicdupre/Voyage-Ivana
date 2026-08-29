@@ -201,7 +201,7 @@
 
   <div class="banner">
     <strong>⚠️ Rien n'est enregistré.</strong>
-    Tout le contenu vit uniquement dans cet onglet : fermer ou actualiser la page efface tout. Relisez toujours le texte généré avant de l'utiliser au dossier — cet outil est une aide à la rédaction, pas un dispositif médical, et il n'est pas responsable de l'exactitude clinique.
+    Tout le contenu vit uniquement dans cet onglet : fermer ou actualiser la page efface tout. Relisez toujours le texte généré avant de l'utiliser au dossier — cet outil est une aide à la rédaction, pas un dispositif médical, et ne garantit pas l'exactitude clinique du contenu.
   </div>
 
   <div class="banner privacy">
@@ -215,14 +215,14 @@
 
   <div class="card">
     <h2>Identification</h2>
-    <p class="help">Optionnel — n'apparaît dans la note que si rempli.</p>
+    <p class="help">Optionnels — Patient et N° de dossier n'apparaissent dans la note que s'ils sont remplis.</p>
     <div class="patient-grid">
       <div>
         <label for="f-patient">Patient</label>
         <input type="text" id="f-patient" placeholder="Nom du patient ou identifiant" />
       </div>
       <div>
-        <label for="f-dossier">No de dossier</label>
+        <label for="f-dossier">N° de dossier</label>
         <input type="text" id="f-dossier" placeholder="Ex. : 1234567" />
       </div>
       <div>
@@ -253,7 +253,7 @@
 
   <div class="card" id="output-card">
     <h2>Note générée</h2>
-    <p class="help">Copiez-collez ce texte dans Crystalnet, ou téléchargez-le comme fichier .txt à joindre à un courriel.</p>
+    <p class="help">Copiez-collez ce texte dans Crystalnet, ou téléchargez-le en fichier .txt à joindre à un courriel.</p>
     <textarea id="note-output" readonly></textarea>
     <div class="actions-bar" style="margin-bottom:0;">
       <button class="primary" id="btn-copy">Copier</button>
@@ -282,7 +282,7 @@
     {
       id: "antecedents",
       title: "Antécédents",
-      help: "Médicaux, chirurgicaux, familiaux et sociaux pertinents.",
+      help: "Antécédents médicaux, chirurgicaux, familiaux et sociaux pertinents.",
     },
     {
       id: "medication",
@@ -474,7 +474,7 @@
     var lines = [];
     lines.push("CONSULTATION EN NEUROLOGIE");
     if (patient) lines.push("Patient : " + patient);
-    if (dossier) lines.push("No de dossier : " + dossier);
+    if (dossier) lines.push("N° de dossier : " + dossier);
     lines.push("Date : " + (formatDate(dateValue) || "____________"));
     lines.push("");
 
