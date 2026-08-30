@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dictée neuro</title>
+<style>
+  :root {
+    --bg: #f4f7f9;
+    --card: #ffffff;
+    --border: #dbe3e8;
+    --text: #16232b;
+    --muted: #5b6b74;
+    --primary: #0f6f6a;
+    --primary-dark: #0b5450;
+    --danger: #b3261e;
+    --danger-bg: #fdecea;
+    --warn-bg: #fff8e1;
+    --warn-border: #f0c948;
+    --rec: #d32f2f;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.45;
+  }
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+  header h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+  }
+  header p.subtitle {
+    margin: 0 0 16px;
+    color: var(--muted);
+  }
+  .banner {
+    border: 1px solid var(--warn-border);
+    background: var(--warn-bg);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+  .banner strong { display: block; margin-bottom: 4px; }
+  .banner.privacy {
+    background: #eef4fb;
+    border-color: #b9d4ec;
+  }
+  details.privacy-details {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 1.05rem;
+    margin: 0 0 4px;
+  }
+  .card .help {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 10px;
+  }
+  .patient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 3px;
+  }
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+  }
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+  .section-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 7px 12px;
+  }
+  button:hover { border-color: var(--primary); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  button.primary:hover { background: var(--primary-dark); }
+  button.ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--muted);
+  }
+  button.mic { min-width: 128px; }
+  button.mic.recording {
+    background: var(--danger-bg);
+    border-color: var(--rec);
+    color: var(--danger);
+  }
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--rec);
+    margin-right: 6px;
+    animation: pulse 1.1s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .interim {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-style: italic;
+    min-height: 1.2em;
+    margin-top: 4px;
+  }
+  .actions-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 20px 0;
+  }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  #note-output {
+    width: 100%;
+    min-height: 360px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.88rem;
+    white-space: pre-wrap;
+  }
+  .dict-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dict-row input { flex: 1; }
+  .dict-row .dict-arrow { color: var(--muted); }
+  .dict-row button {
+    color: var(--danger);
+    border-color: transparent;
+    background: transparent;
+    padding: 6px 10px;
+  }
+  .dict-empty {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin: 0 0 8px;
+  }
+  .glossary-block {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .glossary-block > label {
+    margin-bottom: 6px;
+  }
+  .glossary-results {
+    margin-top: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    display: none;
+  }
+  .glossary-results.visible { display: block; }
+  .glossary-category {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    margin: 8px 0 4px;
+  }
+  .glossary-category:first-child { margin-top: 0; }
+  .glossary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .glossary-chip {
+    font-size: 0.82rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--text);
+  }
+  .glossary-chip:hover {
+    border-color: var(--primary);
+    background: #fff;
+  }
+  .glossary-no-results {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+  .support-warning {
+    display: none;
+    border: 1px solid var(--danger);
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+  }
+  footer {
+    color: var(--muted);
+    font-size: 0.78rem;
+    text-align: center;
+    margin-top: 30px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Dictée neuro</h1>
+    <p class="subtitle">Génère une note de consultation en neurologie, organisée par sections, prête à coller dans Crystalnet.</p>
+  </header>
+
+  <div id="support-warning" class="support-warning">
+    La reconnaissance vocale n'est pas disponible dans ce navigateur (essayez Chrome ou Edge). Vous pouvez tout de même écrire ou coller le texte directement dans chaque section.
+  </div>
+
+  <div class="banner">
+    <strong>⚠️ Rien n'est enregistré.</strong>
+    Tout le contenu patient vit uniquement dans cet onglet : fermer ou actualiser la page efface tout. Seul le dictionnaire de correction ci-dessous (des mots, sans donnée de patient) reste sauvegardé sur cet appareil. Relisez toujours le texte généré avant de l'utiliser au dossier — cet outil est une aide à la rédaction, pas un dispositif médical, et ne garantit pas l'exactitude clinique du contenu.
+  </div>
+
+  <div class="banner privacy">
+    <strong>🔒 À savoir sur la confidentialité de la dictée vocale</strong>
+    Ce fichier ne possède ni serveur ni base de données : rien n'est envoyé nulle part par cette page elle‑même.
+    <details class="privacy-details">
+      <summary>Mais la reconnaissance vocale du navigateur (bouton micro) fonctionne autrement — cliquez pour lire</summary>
+      Chrome/Edge envoient l'audio capté par le micro à leurs serveurs (Google/Microsoft) pour le transcrire ; ce n'est donc pas 100&nbsp;% local dès que vous utilisez le micro. Si la politique de confidentialité de votre hôpital l'exige, évitez de dicter le nom du patient ou d'autres identifiants directs (utilisez plutôt le numéro de dossier interne), ou saisissez/collez le texte manuellement dans les champs au lieu d'utiliser le micro — la saisie manuelle, elle, ne quitte jamais cette page.
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>Identification</h2>
+    <p class="help">Optionnels — Patient et N° de dossier n'apparaissent dans la note que s'ils sont remplis.</p>
+    <div class="patient-grid">
+      <div>
+        <label for="f-patient">Patient</label>
+        <input type="text" id="f-patient" placeholder="Nom du patient ou identifiant" />
+      </div>
+      <div>
+        <label for="f-dossier">N° de dossier</label>
+        <input type="text" id="f-dossier" placeholder="Ex. : 1234567" />
+      </div>
+      <div>
+        <label for="f-date">Date de la consultation</label>
+        <input type="date" id="f-date" />
+      </div>
+      <div>
+        <label for="f-lang">Langue de dictée</label>
+        <select id="f-lang">
+          <option value="fr-CA">Français (Canada)</option>
+          <option value="fr-FR">Français (France)</option>
+          <option value="en-US">English (US)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Dictionnaire de correction automatique</h2>
+    <p class="help">Ajoutez les mots ou expressions souvent mal transcrits (médicaments, termes neuro, etc.) : la correction s'applique automatiquement pendant la dictée et à la génération de la note. Cette liste (des mots seulement, aucune donnée de patient) est sauvegardée dans ce navigateur et reste disponible d'une session à l'autre.</p>
+    <div id="dictionary-rows"></div>
+    <div class="section-toolbar" style="margin-top:8px;">
+      <input type="text" id="dict-new-from" placeholder="Mal transcrit (ex. : céfalée)" style="flex:1;" />
+      <input type="text" id="dict-new-to" placeholder="Terme correct (ex. : céphalée)" style="flex:1;" />
+      <button class="primary" id="dict-add" type="button">Ajouter</button>
+    </div>
+
+    <div class="glossary-block">
+      <label for="glossary-search">Glossaire de référence — cherchez un terme, cliquez dessus pour le mettre comme « terme correct » ci-dessus</label>
+      <input type="text" id="glossary-search" placeholder="Chercher (ex. : levetiracetam, migraine, aricept…)" />
+      <div id="glossary-results" class="glossary-results"></div>
+    </div>
+  </div>
+
+  <div id="sections"></div>
+
+  <div class="actions-bar">
+    <button class="primary" id="btn-generate">Aller à la note</button>
+    <button class="ghost" id="btn-reset">Réinitialiser tout</button>
+    <span class="toggle-row">
+      <input type="checkbox" id="f-skip-empty" checked />
+      <label for="f-skip-empty" style="margin:0;">Omettre les sections vides (note concise)</label>
+    </span>
+  </div>
+
+  <div class="card" id="output-card">
+    <h2>Note générée</h2>
+    <p class="help">Se met à jour automatiquement pendant la dictée ou la saisie. Copiez-collez ce texte dans Crystalnet, ou téléchargez-le en fichier .txt à joindre à un courriel.</p>
+    <textarea id="note-output" readonly></textarea>
+    <div class="actions-bar" style="margin-bottom:0;">
+      <button class="primary" id="btn-copy">Copier</button>
+      <button id="btn-download">Télécharger .txt</button>
+    </div>
+  </div>
+
+  <footer>Outil local, sans compte ni stockage serveur. Aide à la rédaction — la responsabilité clinique du contenu demeure celle du médecin.</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var SECTIONS = [
+    {
+      id: "motif",
+      title: "Motif de consultation",
+      help: "Raison de la visite, en une ou deux phrases.",
+    },
+    {
+      id: "hma",
+      title: "Histoire de la maladie actuelle (HMA)",
+      help: "Évolution, symptômes, chronologie, facteurs associés.",
+    },
+    {
+      id: "antecedents",
+      title: "Antécédents",
+      help: "Antécédents médicaux, chirurgicaux, familiaux et sociaux pertinents.",
+    },
+    {
+      id: "medication",
+      title: "Médication et allergies",
+      help: "Traitements actuels et allergies connues.",
+    },
+    {
+      id: "examen",
+      title: "Examen neurologique",
+      help: "État mental, nerfs crâniens, motricité, sensibilité, réflexes, coordination, marche.",
+    },
+    {
+      id: "impression",
+      title: "Impression",
+      help: "Synthèse diagnostique / diagnostic différentiel.",
+    },
+    {
+      id: "plan",
+      title: "Plan",
+      help: "Investigations, traitement, suivi.",
+    },
+  ];
+
+  var DICT_STORAGE_KEY = "neuroDicteeCorrections";
+  var dictionary = loadDictionary();
+
+  function loadDictionary() {
+    try {
+      var raw = localStorage.getItem(DICT_STORAGE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveDictionary() {
+    try {
+      localStorage.setItem(DICT_STORAGE_KEY, JSON.stringify(dictionary));
+    } catch (e) {
+      // localStorage indisponible (navigation privée, quota) — les corrections restent actives pour cette session
+    }
+  }
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function applyCorrections(text) {
+    dictionary.forEach(function (entry) {
+      if (!entry.from) return;
+      try {
+        var pattern = "(?<![\\p{L}\\p{N}])" + escapeRegExp(entry.from) + "(?![\\p{L}\\p{N}])";
+        var re = new RegExp(pattern, "giu");
+        text = text.replace(re, entry.to);
+      } catch (e) {
+        // motif invalide, on l'ignore
+      }
+    });
+    return text;
+  }
+
+  var dictionaryRowsEl = document.getElementById("dictionary-rows");
+
+  function renderDictionary() {
+    dictionaryRowsEl.innerHTML = "";
+    if (dictionary.length === 0) {
+      var empty = document.createElement("p");
+      empty.className = "dict-empty";
+      empty.textContent = "Aucune correction ajoutée pour l'instant.";
+      dictionaryRowsEl.appendChild(empty);
+      return;
+    }
+    dictionary.forEach(function (entry, index) {
+      var row = document.createElement("div");
+      row.className = "dict-row";
+
+      var fromInput = document.createElement("input");
+      fromInput.type = "text";
+      fromInput.value = entry.from;
+      fromInput.addEventListener("change", function () {
+        dictionary[index].from = fromInput.value.trim();
+        saveDictionary();
+      });
+
+      var arrow = document.createElement("span");
+      arrow.className = "dict-arrow";
+      arrow.textContent = "→";
+
+      var toInput = document.createElement("input");
+      toInput.type = "text";
+      toInput.value = entry.to;
+      toInput.addEventListener("change", function () {
+        dictionary[index].to = toInput.value.trim();
+        saveDictionary();
+      });
+
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "✕";
+      removeBtn.title = "Supprimer cette correction";
+      removeBtn.addEventListener("click", function () {
+        dictionary.splice(index, 1);
+        saveDictionary();
+        renderDictionary();
+      });
+
+      row.appendChild(fromInput);
+      row.appendChild(arrow);
+      row.appendChild(toInput);
+      row.appendChild(removeBtn);
+      dictionaryRowsEl.appendChild(row);
+    });
+  }
+
+  renderDictionary();
+
+  document.getElementById("dict-add").addEventListener("click", function () {
+    var fromField = document.getElementById("dict-new-from");
+    var toField = document.getElementById("dict-new-to");
+    var from = fromField.value.trim();
+    var to = toField.value.trim();
+    if (!from || !to) return;
+    dictionary.push({ from: from, to: to });
+    saveDictionary();
+    renderDictionary();
+    fromField.value = "";
+    toField.value = "";
+    fromField.focus();
+  });
+
+  var GLOSSARY = [{"term": "IRM", "category": "Abréviations", "tip": "Imagerie par résonance magnétique — Technique d'imagerie de référence en neurologie pour l'étude du cerveau, de la moelle et des nerfs."}, {"term": "TDM", "category": "Abréviations", "tip": "Tomodensitométrie — Scan cérébral rapide, souvent utilisé en urgence (AVC, trauma)."}, {"term": "ANGIO-IRM", "category": "Abréviations", "tip": "Angiographie par résonance magnétique — Étude des vaisseaux cérébraux sans injection de produit de contraste iodé."}, {"term": "TEP", "category": "Abréviations", "tip": "Tomographie par émission de positrons — Utilisée notamment pour l'imagerie métabolique cérébrale (démences) ou amyloïde."}, {"term": "DAT-scan", "category": "Abréviations", "tip": "Scintigraphie des transporteurs de dopamine — Utile pour distinguer un syndrome parkinsonien dégénératif d'un tremblement essentiel."}, {"term": "EMG", "category": "Abréviations", "tip": "Électromyogramme — Étude de l'activité électrique musculaire, souvent couplée à l'ENMG."}, {"term": "ENMG", "category": "Abréviations", "tip": "Électroneuromyogramme — Combine l'étude de la conduction nerveuse (VCN) et l'EMG."}, {"term": "VCN", "category": "Abréviations", "tip": "Vitesse de conduction nerveuse — Mesure la vitesse de propagation de l'influx nerveux; réduite en démyélinisation."}, {"term": "PEV", "category": "Abréviations", "tip": "Potentiels évoqués visuels — Utilisés notamment dans le bilan de la sclérose en plaques."}, {"term": "PES", "category": "Abréviations", "tip": "Potentiels évoqués somesthésiques — Étudient la voie sensitive lemniscale."}, {"term": "PEM", "category": "Abréviations", "tip": "Potentiels évoqués moteurs — Stimulation magnétique transcrânienne pour étudier la voie corticospinale."}, {"term": "EEG", "category": "Abréviations", "tip": "Électroencéphalogramme — Enregistrement de l'activité électrique cérébrale, essentiel en épileptologie."}, {"term": "PL", "category": "Abréviations", "tip": "Ponction lombaire — Prélèvement de LCR à des fins diagnostiques (infection, SEP, pression, cytologie)."}, {"term": "LCR", "category": "Abréviations", "tip": "Liquide céphalorachidien — Liquide analysé en cas de suspicion d'infection, SEP, Guillain-Barré, etc."}, {"term": "AVC", "category": "Abréviations", "tip": "Accident vasculaire cérébral — Ischémique ou hémorragique; urgence neurologique majeure."}, {"term": "AIT", "category": "Abréviations", "tip": "Accident ischémique transitoire — Déficit neurologique focal transitoire sans infarctus à l'imagerie."}, {"term": "ICT", "category": "Abréviations", "tip": "Ischémie cérébrale transitoire — Synonyme utilisé pour l'AIT."}, {"term": "tPA", "category": "Abréviations", "tip": "Activateur tissulaire du plasminogène — Agent thrombolytique utilisé en phase aiguë de l'AVC ischémique."}, {"term": "HSA", "category": "Abréviations", "tip": "Hémorragie sous-arachnoïdienne — Souvent secondaire à la rupture d'un anévrisme."}, {"term": "HIC", "category": "Abréviations", "tip": "Hémorragie intracrânienne — Regroupe les hémorragies intracérébrales, sous-durales et épidurales."}, {"term": "NIHSS", "category": "Abréviations", "tip": "Échelle de gravité de l'AVC du NIH — Score standardisé de sévérité clinique d'un AVC."}, {"term": "mRS", "category": "Abréviations", "tip": "Échelle de Rankin modifiée — Mesure du degré d'incapacité fonctionnelle après un AVC."}, {"term": "GCS", "category": "Abréviations", "tip": "Échelle de coma de Glasgow — Évalue l'état de conscience (ouverture des yeux, réponse verbale et motrice)."}, {"term": "EME", "category": "Abréviations", "tip": "État de mal épileptique — Crise prolongée ou crises répétées sans retour à l'état de base; urgence."}, {"term": "EEG-vidéo", "category": "Abréviations", "tip": "Électroencéphalogramme couplé à un enregistrement vidéo — Permet de corréler sémiologie clinique et tracé EEG pour classifier les crises."}, {"term": "SUDEP", "category": "Abréviations", "tip": "Mort subite inattendue en épilepsie — Complication rare mais redoutée de l'épilepsie mal contrôlée."}, {"term": "SEP", "category": "Abréviations", "tip": "Sclérose en plaques — Maladie inflammatoire démyélinisante chronique du SNC."}, {"term": "SEP-RR", "category": "Abréviations", "tip": "SEP rémittente-récurrente — Forme la plus fréquente au diagnostic, marquée par des poussées."}, {"term": "SEP-SP", "category": "Abréviations", "tip": "SEP secondairement progressive — Évolution progressive suivant une phase rémittente-récurrente initiale."}, {"term": "SEP-PP", "category": "Abréviations", "tip": "SEP primaire progressive — Progression dès le début, sans poussées distinctes."}, {"term": "EDSS", "category": "Abréviations", "tip": "Échelle étendue du statut de handicap — Score de référence pour quantifier le handicap en SEP."}, {"term": "NMOSD", "category": "Abréviations", "tip": "Trouble du spectre de la neuromyélite optique — Maladie associée aux anticorps anti-aquaporine-4, distincte de la SEP."}, {"term": "MOGAD", "category": "Abréviations", "tip": "Maladie associée aux anticorps anti-MOG — Syndrome démyélinisant auto-immun distinct de la SEP et du NMOSD."}, {"term": "ADEM", "category": "Abréviations", "tip": "Encéphalomyélite aiguë disséminée — Atteinte démyélinisante monophasique souvent post-infectieuse."}, {"term": "LEMP", "category": "Abréviations", "tip": "Leucoencéphalopathie multifocale progressive — Infection opportuniste du SNC par le virus JC, risque des traitements immunosuppresseurs de la SEP."}, {"term": "PML", "category": "Abréviations", "tip": "Leucoencéphalopathie multifocale progressive — Infection opportuniste du SNC par le virus JC, risque des traitements immunosuppresseurs de la SEP."}, {"term": "SLA", "category": "Abréviations", "tip": "Sclérose latérale amyotrophique — Maladie neurodégénérative du motoneurone supérieur et inférieur."}, {"term": "ALS", "category": "Abréviations", "tip": "Sclérose latérale amyotrophique — Maladie neurodégénérative du motoneurone supérieur et inférieur."}, {"term": "ALSFRS-R", "category": "Abréviations", "tip": "Échelle fonctionnelle révisée de la SLA — Score de suivi fonctionnel utilisé dans le suivi clinique et les essais SLA."}, {"term": "MNS", "category": "Abréviations", "tip": "Motoneurone supérieur — Atteinte se manifestant par spasticité, hyperréflexie, signe de Babinski."}, {"term": "MNI", "category": "Abréviations", "tip": "Motoneurone inférieur — Atteinte se manifestant par faiblesse, amyotrophie, fasciculations, aréflexie."}, {"term": "SMA", "category": "Abréviations", "tip": "Amyotrophie spinale — Maladie génétique du motoneurone inférieur liée au gène SMN1."}, {"term": "CMT", "category": "Abréviations", "tip": "Maladie de Charcot-Marie-Tooth — Neuropathie héréditaire sensitivomotrice, la plus fréquente des neuropathies génétiques."}, {"term": "DMD", "category": "Abréviations", "tip": "Dystrophie musculaire de Duchenne — Dystrophinopathie liée à l'X, la plus sévère des dystrophies musculaires de l'enfant."}, {"term": "DMB", "category": "Abréviations", "tip": "Dystrophie musculaire de Becker — Forme plus légère et tardive de dystrophinopathie."}, {"term": "DM1", "category": "Abréviations", "tip": "Dystrophie myotonique de type 1 / 2 — Maladies multisystémiques à expansion répétée (DMPK pour DM1, CNBP pour DM2)."}, {"term": "DM2", "category": "Abréviations", "tip": "Dystrophie myotonique de type 1 / 2 — Maladies multisystémiques à expansion répétée (DMPK pour DM1, CNBP pour DM2)."}, {"term": "FSHD", "category": "Abréviations", "tip": "Dystrophie facio-scapulo-humérale — Dystrophie musculaire touchant préférentiellement la face, les épaules et les bras."}, {"term": "LGMD", "category": "Abréviations", "tip": "Dystrophie musculaire des ceintures — Groupe hétérogène de dystrophies atteignant les ceintures scapulaire et pelvienne."}, {"term": "HSP", "category": "Abréviations", "tip": "Paraplégie spastique héréditaire — Groupe de maladies génétiques causant une spasticité progressive des membres inférieurs."}, {"term": "SCA", "category": "Abréviations", "tip": "Ataxie spinocérébelleuse — Groupe d'ataxies héréditaires, souvent à expansion répétée (ex. SCA27B/FGF14)."}, {"term": "HHT", "category": "Abréviations", "tip": "Télangiectasie hémorragique héréditaire — Maladie de Rendu-Osler; malformations vasculaires, dont les MAV cérébrales (CM-AVM)."}, {"term": "MG", "category": "Abréviations", "tip": "Myasthénie grave — Maladie auto-immune de la jonction neuromusculaire (anticorps anti-RACh ou anti-MuSK)."}, {"term": "LEMS", "category": "Abréviations", "tip": "Syndrome myasthénique de Lambert-Eaton — Syndrome présynaptique auto-immun, souvent paranéoplasique (cancer pulmonaire à petites cellules)."}, {"term": "SGB", "category": "Abréviations", "tip": "Syndrome de Guillain-Barré — Polyradiculonévrite aiguë inflammatoire démyélinisante, souvent post-infectieuse."}, {"term": "GBS", "category": "Abréviations", "tip": "Syndrome de Guillain-Barré — Polyradiculonévrite aiguë inflammatoire démyélinisante, souvent post-infectieuse."}, {"term": "PIDC", "category": "Abréviations", "tip": "Polyradiculonévrite inflammatoire démyélinisante chronique — Forme chronique apparentée au Guillain-Barré."}, {"term": "CIDP", "category": "Abréviations", "tip": "Polyradiculonévrite inflammatoire démyélinisante chronique — Forme chronique apparentée au Guillain-Barré."}, {"term": "NMM", "category": "Abréviations", "tip": "Neuropathie motrice multifocale — Neuropathie motrice pure avec blocs de conduction, associée aux anti-GM1."}, {"term": "MMN", "category": "Abréviations", "tip": "Neuropathie motrice multifocale — Neuropathie motrice pure avec blocs de conduction, associée aux anti-GM1."}, {"term": "PN", "category": "Abréviations", "tip": "Polyneuropathie — Atteinte diffuse et souvent symétrique de plusieurs nerfs périphériques."}, {"term": "PNP", "category": "Abréviations", "tip": "Polyneuropathie — Atteinte diffuse et souvent symétrique de plusieurs nerfs périphériques."}, {"term": "MA", "category": "Abréviations", "tip": "Maladie d'Alzheimer — Cause la plus fréquente de démence, marquée par plaques amyloïdes et dégénérescence neurofibrillaire."}, {"term": "MP", "category": "Abréviations", "tip": "Maladie de Parkinson — Maladie neurodégénérative dopaminergique; triade bradykinésie-rigidité-tremblement."}, {"term": "UPDRS", "category": "Abréviations", "tip": "Échelle unifiée d'évaluation de la maladie de Parkinson — Score de référence pour évaluer la sévérité motrice et non motrice du Parkinson."}, {"term": "MDS-UPDRS", "category": "Abréviations", "tip": "Échelle unifiée d'évaluation de la maladie de Parkinson — Score de référence pour évaluer la sévérité motrice et non motrice du Parkinson."}, {"term": "PSP", "category": "Abréviations", "tip": "Paralysie supranucléaire progressive — Syndrome parkinsonien atypique avec paralysie du regard vertical."}, {"term": "AMS", "category": "Abréviations", "tip": "Atrophie multisystématisée — Synucléinopathie atypique combinant signes parkinsoniens, cérébelleux et dysautonomiques."}, {"term": "DCL", "category": "Abréviations", "tip": "Démence à corps de Lewy — Démence associée à fluctuations cognitives, hallucinations et parkinsonisme."}, {"term": "DFT", "category": "Abréviations", "tip": "Démence frontotemporale — Démence touchant préférentiellement les lobes frontaux et temporaux."}, {"term": "MoCA", "category": "Abréviations", "tip": "Montreal Cognitive Assessment — Test de dépistage cognitif bref développé au Québec."}, {"term": "MMSE", "category": "Abréviations", "tip": "Mini-examen de l'état mental — Test cognitif classique, moins sensible aux atteintes légères que le MoCA."}, {"term": "TCL", "category": "Abréviations", "tip": "Trouble cognitif léger — Stade intermédiaire entre le vieillissement normal et la démence."}, {"term": "ADN", "category": "Abréviations", "tip": "Acide désoxyribonucléique — Support de l'information génétique."}, {"term": "VUS", "category": "Abréviations", "tip": "Variant de signification indéterminée — Variant génétique dont le caractère pathogène n'est pas encore établi."}, {"term": "WES", "category": "Abréviations", "tip": "Séquençage de l'exome entier — Séquençage des régions codantes du génome, utile en neurogénétique."}, {"term": "WGS", "category": "Abréviations", "tip": "Séquençage du génome entier — Séquençage complet de l'ADN, incluant les régions non codantes."}, {"term": "AD", "category": "Abréviations", "tip": "Autosomique dominant — Mode de transmission héréditaire nécessitant une seule copie mutée."}, {"term": "AR", "category": "Abréviations", "tip": "Autosomique récessif — Mode de transmission nécessitant deux copies mutées (une de chaque parent)."}, {"term": "NORB", "category": "Abréviations", "tip": "Névrite optique rétrobulbaire — Inflammation du nerf optique, souvent révélatrice d'une SEP ou d'un NMOSD."}, {"term": "OCT", "category": "Abréviations", "tip": "Tomographie par cohérence optique — Mesure l'épaisseur des fibres rétiniennes, utile pour le suivi de la SEP."}, {"term": "PPC", "category": "Abréviations", "tip": "Paralysie du regard / ophtalmoplégie — Atteinte de la motricité oculaire, à localiser (nerfs III, IV, VI, tronc cérébral)."}, {"term": "OMI", "category": "Abréviations", "tip": "Paralysie du regard / ophtalmoplégie — Atteinte de la motricité oculaire, à localiser (nerfs III, IV, VI, tronc cérébral)."}, {"term": "VPPB", "category": "Abréviations", "tip": "Vertige paroxystique positionnel bénin — Cause la plus fréquente de vertige, liée à des otolithes dans les canaux semi-circulaires."}, {"term": "VNG", "category": "Abréviations", "tip": "Vidéonystagmographie — Étude du nystagmus et des réflexes vestibulo-oculaires."}, {"term": "PSG", "category": "Abréviations", "tip": "Polysomnographie — Enregistrement multiparamétrique du sommeil (EEG, respiration, mouvements)."}, {"term": "IAH", "category": "Abréviations", "tip": "Index d'apnées-hypopnées — Nombre d'événements respiratoires par heure de sommeil, quantifie la sévérité du SAOS."}, {"term": "SAOS", "category": "Abréviations", "tip": "Syndrome d'apnée obstructive du sommeil — Cause fréquente de somnolence diurne, associée à un risque vasculaire accru."}, {"term": "TILE", "category": "Abréviations", "tip": "Test itératif de latence d'endormissement — Utilisé notamment pour le diagnostic de la narcolepsie."}, {"term": "SJSR", "category": "Abréviations", "tip": "Syndrome des jambes sans repos — Besoin impérieux de bouger les jambes, souvent nocturne, soulagé par le mouvement."}, {"term": "GBM", "category": "Abréviations", "tip": "Glioblastome — Tumeur cérébrale primitive la plus fréquente et la plus agressive chez l'adulte (grade 4 OMS)."}, {"term": "OMS (grade tumoral)", "category": "Abréviations", "tip": "Classification de l'Organisation mondiale de la santé — Système de classification de l'agressivité des tumeurs du SNC (grades 1 à 4)."}, {"term": "MTS", "category": "Abréviations", "tip": "Métastase(s) — Lésion secondaire au SNC, la tumeur cérébrale la plus fréquente chez l'adulte toutes causes confondues."}, {"term": "ME", "category": "Abréviations", "tip": "Méningoencéphalite — Atteinte combinée des méninges et du parenchyme cérébral, souvent d'origine infectieuse."}, {"term": "HSV-1", "category": "Abréviations", "tip": "Virus herpès simplex de type 1 — Cause la plus fréquente d'encéphalite virale sporadique grave chez l'adulte."}, {"term": "SNA", "category": "Abréviations", "tip": "Système nerveux autonome — Regroupe les systèmes sympathique et parasympathique régulant les fonctions involontaires."}, {"term": "HTO", "category": "Abréviations", "tip": "Hypotension orthostatique — Chute de tension artérielle au passage à la position debout, fréquente en dysautonomie et en Parkinson."}, {"term": "PC", "category": "Abréviations", "tip": "Paralysie cérébrale — Trouble moteur permanent d'origine développementale, non progressif, lié à une atteinte cérébrale précoce."}, {"term": "TSA", "category": "Abréviations", "tip": "Trouble du spectre de l'autisme — Trouble neurodéveloppemental affectant la communication sociale et le comportement."}, {"term": "TDAH", "category": "Abréviations", "tip": "Trouble du déficit de l'attention avec ou sans hyperactivité — Trouble neurodéveloppemental fréquent chez l'enfant, persistant parfois à l'âge adulte."}, {"term": "AVF", "category": "Abréviations", "tip": "Algie vasculaire de la face — Céphalée trigémino-autonomique sévère, unilatérale, survenant par salves."}, {"term": "HTIC", "category": "Abréviations", "tip": "Hypertension intracrânienne — Élévation de la pression à l'intérieur de la boîte crânienne; urgence neurologique."}, {"term": "PIC", "category": "Abréviations", "tip": "Pression intracrânienne — Paramètre surveillé en soins neurocritiques (traumatisme crânien, hémorragie)."}, {"term": "DVP", "category": "Abréviations", "tip": "Dérivation ventriculo-péritonéale — Dispositif dérivant le LCR des ventricules cérébraux vers le péritoine en cas d'hydrocéphalie."}, {"term": "SCP", "category": "Abréviations", "tip": "Stimulation cérébrale profonde — Traitement chirurgical de certains mouvements anormaux réfractaires (Parkinson, tremblement, dystonie)."}, {"term": "DBS", "category": "Abréviations", "tip": "Stimulation cérébrale profonde — Traitement chirurgical de certains mouvements anormaux réfractaires (Parkinson, tremblement, dystonie)."}, {"term": "Lévétiracétam", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale et généralisée"}, {"term": "Keppra", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale et généralisée"}, {"term": "Valproate de sodium", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie généralisée, migraine (prophylaxie)"}, {"term": "divalproex", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie généralisée, migraine (prophylaxie)"}, {"term": "Épival", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie généralisée, migraine (prophylaxie)"}, {"term": "Depakene", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie généralisée, migraine (prophylaxie)"}, {"term": "Lamotrigine", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale et généralisée"}, {"term": "Lamictal", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale et généralisée"}, {"term": "Carbamazépine", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale, névralgie du trijumeau"}, {"term": "Tegretol", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale, névralgie du trijumeau"}, {"term": "Oxcarbazépine", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Trileptal", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Phénytoïne", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie, état de mal épileptique"}, {"term": "Dilantin", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie, état de mal épileptique"}, {"term": "Topiramate", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie, migraine (prophylaxie)"}, {"term": "Topamax", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie, migraine (prophylaxie)"}, {"term": "Lacosamide", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Vimpat", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Perampanel", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale et généralisée"}, {"term": "Fycompa", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale et généralisée"}, {"term": "Brivaracétam", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Briviact", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Clobazam", "category": "Médicaments", "tip": "Antiépileptique (benzodiazépine) — Épilepsie réfractaire, syndromes épileptiques"}, {"term": "Frisium", "category": "Médicaments", "tip": "Antiépileptique (benzodiazépine) — Épilepsie réfractaire, syndromes épileptiques"}, {"term": "Clonazépam", "category": "Médicaments", "tip": "Antiépileptique (benzodiazépine) — Épilepsie, myoclonies"}, {"term": "Rivotril", "category": "Médicaments", "tip": "Antiépileptique (benzodiazépine) — Épilepsie, myoclonies"}, {"term": "Gabapentine", "category": "Médicaments", "tip": "Antiépileptique / analgésique — Douleur neuropathique, épilepsie focale (adjuvant)"}, {"term": "Neurontin", "category": "Médicaments", "tip": "Antiépileptique / analgésique — Douleur neuropathique, épilepsie focale (adjuvant)"}, {"term": "Prégabaline", "category": "Médicaments", "tip": "Antiépileptique / analgésique — Douleur neuropathique, épilepsie focale (adjuvant)"}, {"term": "Lyrica", "category": "Médicaments", "tip": "Antiépileptique / analgésique — Douleur neuropathique, épilepsie focale (adjuvant)"}, {"term": "Zonisamide", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Zonegran", "category": "Médicaments", "tip": "Antiépileptique — Épilepsie focale"}, {"term": "Éthosuximide", "category": "Médicaments", "tip": "Antiépileptique — Absences (petit mal)"}, {"term": "Zarontin", "category": "Médicaments", "tip": "Antiépileptique — Absences (petit mal)"}, {"term": "Phénobarbital", "category": "Médicaments", "tip": "Antiépileptique (barbiturique) — Épilepsie, état de mal épileptique"}, {"term": "Phenobarbital", "category": "Médicaments", "tip": "Antiépileptique (barbiturique) — Épilepsie, état de mal épileptique"}, {"term": "Lévodopa/carbidopa", "category": "Médicaments", "tip": "Dopaminergique — Maladie de Parkinson"}, {"term": "Sinemet", "category": "Médicaments", "tip": "Dopaminergique — Maladie de Parkinson"}, {"term": "Lévodopa/carbidopa/entacapone", "category": "Médicaments", "tip": "Dopaminergique — Maladie de Parkinson avec fluctuations"}, {"term": "Stalevo", "category": "Médicaments", "tip": "Dopaminergique — Maladie de Parkinson avec fluctuations"}, {"term": "Pramipexole", "category": "Médicaments", "tip": "Agoniste dopaminergique — Maladie de Parkinson, jambes sans repos"}, {"term": "Mirapex", "category": "Médicaments", "tip": "Agoniste dopaminergique — Maladie de Parkinson, jambes sans repos"}, {"term": "Ropinirole", "category": "Médicaments", "tip": "Agoniste dopaminergique — Maladie de Parkinson, jambes sans repos"}, {"term": "Requip", "category": "Médicaments", "tip": "Agoniste dopaminergique — Maladie de Parkinson, jambes sans repos"}, {"term": "Rotigotine", "category": "Médicaments", "tip": "Agoniste dopaminergique — Maladie de Parkinson"}, {"term": "Neupro", "category": "Médicaments", "tip": "Agoniste dopaminergique — Maladie de Parkinson"}, {"term": "Rasagiline", "category": "Médicaments", "tip": "Inhibiteur de la MAO-B — Maladie de Parkinson (précoce ou adjuvant)"}, {"term": "Azilect", "category": "Médicaments", "tip": "Inhibiteur de la MAO-B — Maladie de Parkinson (précoce ou adjuvant)"}, {"term": "Sélégiline", "category": "Médicaments", "tip": "Inhibiteur de la MAO-B — Maladie de Parkinson"}, {"term": "Eldepryl", "category": "Médicaments", "tip": "Inhibiteur de la MAO-B — Maladie de Parkinson"}, {"term": "Entacapone", "category": "Médicaments", "tip": "Inhibiteur de la COMT — Maladie de Parkinson avec fluctuations"}, {"term": "Comtan", "category": "Médicaments", "tip": "Inhibiteur de la COMT — Maladie de Parkinson avec fluctuations"}, {"term": "Opicapone", "category": "Médicaments", "tip": "Inhibiteur de la COMT — Maladie de Parkinson avec fluctuations"}, {"term": "Ongentys", "category": "Médicaments", "tip": "Inhibiteur de la COMT — Maladie de Parkinson avec fluctuations"}, {"term": "Amantadine", "category": "Médicaments", "tip": "Antiviral / antiparkinsonien — Dyskinésies liées à la lévodopa"}, {"term": "Symmetrel", "category": "Médicaments", "tip": "Antiviral / antiparkinsonien — Dyskinésies liées à la lévodopa"}, {"term": "Trihexyphénidyle", "category": "Médicaments", "tip": "Anticholinergique — Tremblement parkinsonien (jeunes patients)"}, {"term": "Artane", "category": "Médicaments", "tip": "Anticholinergique — Tremblement parkinsonien (jeunes patients)"}, {"term": "Safinamide", "category": "Médicaments", "tip": "Inhibiteur de la MAO-B — Maladie de Parkinson avec fluctuations"}, {"term": "Xadago", "category": "Médicaments", "tip": "Inhibiteur de la MAO-B — Maladie de Parkinson avec fluctuations"}, {"term": "Interféron bêta-1a", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Avonex", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Rebif", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Interféron bêta-1b", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Betaseron", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Extavia", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Acétate de glatiramère", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Copaxone", "category": "Médicaments", "tip": "Immunomodulateur — SEP rémittente-récurrente"}, {"term": "Natalizumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-α4-intégrine) — SEP rémittente-récurrente active"}, {"term": "Tysabri", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-α4-intégrine) — SEP rémittente-récurrente active"}, {"term": "Fingolimod", "category": "Médicaments", "tip": "Modulateur des récepteurs S1P — SEP rémittente-récurrente"}, {"term": "Gilenya", "category": "Médicaments", "tip": "Modulateur des récepteurs S1P — SEP rémittente-récurrente"}, {"term": "Siponimod", "category": "Médicaments", "tip": "Modulateur des récepteurs S1P — SEP secondairement progressive active"}, {"term": "Mayzent", "category": "Médicaments", "tip": "Modulateur des récepteurs S1P — SEP secondairement progressive active"}, {"term": "Ozanimod", "category": "Médicaments", "tip": "Modulateur des récepteurs S1P — SEP rémittente-récurrente"}, {"term": "Zeposia", "category": "Médicaments", "tip": "Modulateur des récepteurs S1P — SEP rémittente-récurrente"}, {"term": "Diméthylfumarate", "category": "Médicaments", "tip": "Immunomodulateur oral — SEP rémittente-récurrente"}, {"term": "Tecfidera", "category": "Médicaments", "tip": "Immunomodulateur oral — SEP rémittente-récurrente"}, {"term": "Tériflunomide", "category": "Médicaments", "tip": "Immunomodulateur oral — SEP rémittente-récurrente"}, {"term": "Aubagio", "category": "Médicaments", "tip": "Immunomodulateur oral — SEP rémittente-récurrente"}, {"term": "Ocrelizumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD20) — SEP rémittente-récurrente et primaire progressive"}, {"term": "Ocrevus", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD20) — SEP rémittente-récurrente et primaire progressive"}, {"term": "Ofatumumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD20) — SEP rémittente-récurrente"}, {"term": "Kesimpta", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD20) — SEP rémittente-récurrente"}, {"term": "Rituximab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD20) — SEP (hors indication), NMOSD"}, {"term": "Rituxan", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD20) — SEP (hors indication), NMOSD"}, {"term": "Cladribine", "category": "Médicaments", "tip": "Immunosuppresseur oral — SEP rémittente-récurrente active"}, {"term": "Mavenclad", "category": "Médicaments", "tip": "Immunosuppresseur oral — SEP rémittente-récurrente active"}, {"term": "Alemtuzumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD52) — SEP rémittente-récurrente active"}, {"term": "Lemtrada", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CD52) — SEP rémittente-récurrente active"}, {"term": "Fampridine (dalfampridine)", "category": "Médicaments", "tip": "Bloqueur des canaux potassiques — Amélioration de la marche en SEP"}, {"term": "Fampyra", "category": "Médicaments", "tip": "Bloqueur des canaux potassiques — Amélioration de la marche en SEP"}, {"term": "Ampyra", "category": "Médicaments", "tip": "Bloqueur des canaux potassiques — Amélioration de la marche en SEP"}, {"term": "Riluzole", "category": "Médicaments", "tip": "Antiglutamatergique — SLA"}, {"term": "Rilutek", "category": "Médicaments", "tip": "Antiglutamatergique — SLA"}, {"term": "Édaravone", "category": "Médicaments", "tip": "Antioxydant — SLA"}, {"term": "Radicava", "category": "Médicaments", "tip": "Antioxydant — SLA"}, {"term": "Tofersen", "category": "Médicaments", "tip": "Oligonucléotide antisens (anti-SOD1) — SLA liée au gène SOD1"}, {"term": "Qalsody", "category": "Médicaments", "tip": "Oligonucléotide antisens (anti-SOD1) — SLA liée au gène SOD1"}, {"term": "Phénylbutyrate de sodium/taurursodiol", "category": "Médicaments", "tip": "Neuroprotecteur combiné — SLA"}, {"term": "Relyvrio", "category": "Médicaments", "tip": "Neuroprotecteur combiné — SLA"}, {"term": "Albrioza", "category": "Médicaments", "tip": "Neuroprotecteur combiné — SLA"}, {"term": "Nusinersen", "category": "Médicaments", "tip": "Oligonucléotide antisens (modificateur de l'épissage SMN2) — Amyotrophie spinale"}, {"term": "Spinraza", "category": "Médicaments", "tip": "Oligonucléotide antisens (modificateur de l'épissage SMN2) — Amyotrophie spinale"}, {"term": "Risdiplam", "category": "Médicaments", "tip": "Modificateur de l'épissage SMN2 — Amyotrophie spinale"}, {"term": "Evrysdi", "category": "Médicaments", "tip": "Modificateur de l'épissage SMN2 — Amyotrophie spinale"}, {"term": "Onasemnogène abeparvovec", "category": "Médicaments", "tip": "Thérapie génique (vecteur AAV9) — Amyotrophie spinale (jeunes enfants)"}, {"term": "Zolgensma", "category": "Médicaments", "tip": "Thérapie génique (vecteur AAV9) — Amyotrophie spinale (jeunes enfants)"}, {"term": "Ataluren", "category": "Médicaments", "tip": "Agent de lecture des codons stop — DMD due à une mutation non-sens"}, {"term": "Translarna", "category": "Médicaments", "tip": "Agent de lecture des codons stop — DMD due à une mutation non-sens"}, {"term": "Vamorolone", "category": "Médicaments", "tip": "Corticostéroïde dissociatif — DMD"}, {"term": "Agamree", "category": "Médicaments", "tip": "Corticostéroïde dissociatif — DMD"}, {"term": "Deflazacort", "category": "Médicaments", "tip": "Corticostéroïde — DMD"}, {"term": "Emflaza", "category": "Médicaments", "tip": "Corticostéroïde — DMD"}, {"term": "Pyridostigmine", "category": "Médicaments", "tip": "Anticholinestérasique — Myasthénie grave"}, {"term": "Mestinon", "category": "Médicaments", "tip": "Anticholinestérasique — Myasthénie grave"}, {"term": "Azathioprine", "category": "Médicaments", "tip": "Immunosuppresseur — Myasthénie grave, maladies auto-immunes neuromusculaires"}, {"term": "Imuran", "category": "Médicaments", "tip": "Immunosuppresseur — Myasthénie grave, maladies auto-immunes neuromusculaires"}, {"term": "Mycophénolate mofétil", "category": "Médicaments", "tip": "Immunosuppresseur — Myasthénie grave"}, {"term": "CellCept", "category": "Médicaments", "tip": "Immunosuppresseur — Myasthénie grave"}, {"term": "Eculizumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-C5) — Myasthénie grave réfractaire (anti-RACh+)"}, {"term": "Soliris", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-C5) — Myasthénie grave réfractaire (anti-RACh+)"}, {"term": "Ravulizumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-C5) — Myasthénie grave réfractaire (anti-RACh+)"}, {"term": "Ultomiris", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-C5) — Myasthénie grave réfractaire (anti-RACh+)"}, {"term": "Efgartigimod", "category": "Médicaments", "tip": "Fragment d'anticorps (anti-FcRn) — Myasthénie grave (anti-RACh+)"}, {"term": "Vyvgart", "category": "Médicaments", "tip": "Fragment d'anticorps (anti-FcRn) — Myasthénie grave (anti-RACh+)"}, {"term": "Rozanolixizumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-FcRn) — Myasthénie grave"}, {"term": "Rystiggo", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-FcRn) — Myasthénie grave"}, {"term": "Immunoglobulines intraveineuses (IVIg)", "category": "Médicaments", "tip": "Immunomodulateur (produit sanguin) — Guillain-Barré, myasthénie, CIDP, dermatomyosite"}, {"term": "Privigen", "category": "Médicaments", "tip": "Immunomodulateur (produit sanguin) — Guillain-Barré, myasthénie, CIDP, dermatomyosite"}, {"term": "Gamunex", "category": "Médicaments", "tip": "Immunomodulateur (produit sanguin) — Guillain-Barré, myasthénie, CIDP, dermatomyosite"}, {"term": "etc.", "category": "Médicaments", "tip": "Immunomodulateur (produit sanguin) — Guillain-Barré, myasthénie, CIDP, dermatomyosite"}, {"term": "Sumatriptan", "category": "Médicaments", "tip": "Triptan (agoniste 5-HT1) — Traitement aigu de la migraine"}, {"term": "Imitrex", "category": "Médicaments", "tip": "Triptan (agoniste 5-HT1) — Traitement aigu de la migraine"}, {"term": "Rizatriptan", "category": "Médicaments", "tip": "Triptan — Traitement aigu de la migraine"}, {"term": "Maxalt", "category": "Médicaments", "tip": "Triptan — Traitement aigu de la migraine"}, {"term": "Zolmitriptan", "category": "Médicaments", "tip": "Triptan — Traitement aigu de la migraine"}, {"term": "Zomig", "category": "Médicaments", "tip": "Triptan — Traitement aigu de la migraine"}, {"term": "Érénumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-récepteur CGRP) — Prophylaxie de la migraine"}, {"term": "Aimovig", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-récepteur CGRP) — Prophylaxie de la migraine"}, {"term": "Frémanezumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CGRP) — Prophylaxie de la migraine"}, {"term": "Ajovy", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CGRP) — Prophylaxie de la migraine"}, {"term": "Galcanézumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CGRP) — Prophylaxie de la migraine, algie vasculaire de la face"}, {"term": "Emgality", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CGRP) — Prophylaxie de la migraine, algie vasculaire de la face"}, {"term": "Eptinézumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CGRP) — Prophylaxie de la migraine"}, {"term": "Vyepti", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-CGRP) — Prophylaxie de la migraine"}, {"term": "Rimégépant", "category": "Médicaments", "tip": "Gépant (antagoniste des récepteurs CGRP) — Traitement aigu et prophylaxie de la migraine"}, {"term": "Nurtec ODT", "category": "Médicaments", "tip": "Gépant (antagoniste des récepteurs CGRP) — Traitement aigu et prophylaxie de la migraine"}, {"term": "Ubrogépant", "category": "Médicaments", "tip": "Gépant — Traitement aigu de la migraine"}, {"term": "Ubrelvy", "category": "Médicaments", "tip": "Gépant — Traitement aigu de la migraine"}, {"term": "OnabotulinumtoxinA", "category": "Médicaments", "tip": "Toxine botulique — Migraine chronique, spasticité"}, {"term": "Botox", "category": "Médicaments", "tip": "Toxine botulique — Migraine chronique, spasticité"}, {"term": "Baclofène", "category": "Médicaments", "tip": "Myorelaxant (agoniste GABA-B) — Spasticité (SEP, lésion médullaire, etc.)"}, {"term": "Lioresal", "category": "Médicaments", "tip": "Myorelaxant (agoniste GABA-B) — Spasticité (SEP, lésion médullaire, etc.)"}, {"term": "Tizanidine", "category": "Médicaments", "tip": "Myorelaxant (agoniste alpha-2) — Spasticité"}, {"term": "Zanaflex", "category": "Médicaments", "tip": "Myorelaxant (agoniste alpha-2) — Spasticité"}, {"term": "Acide acétylsalicylique", "category": "Médicaments", "tip": "Antiplaquettaire — Prévention secondaire de l'AVC ischémique"}, {"term": "Aspirine", "category": "Médicaments", "tip": "Antiplaquettaire — Prévention secondaire de l'AVC ischémique"}, {"term": "Clopidogrel", "category": "Médicaments", "tip": "Antiplaquettaire — Prévention secondaire de l'AVC ischémique"}, {"term": "Plavix", "category": "Médicaments", "tip": "Antiplaquettaire — Prévention secondaire de l'AVC ischémique"}, {"term": "Apixaban", "category": "Médicaments", "tip": "Anticoagulant oral direct — Prévention de l'AVC cardio-embolique (fibrillation auriculaire)"}, {"term": "Eliquis", "category": "Médicaments", "tip": "Anticoagulant oral direct — Prévention de l'AVC cardio-embolique (fibrillation auriculaire)"}, {"term": "Rivaroxaban", "category": "Médicaments", "tip": "Anticoagulant oral direct — Prévention de l'AVC cardio-embolique"}, {"term": "Xarelto", "category": "Médicaments", "tip": "Anticoagulant oral direct — Prévention de l'AVC cardio-embolique"}, {"term": "Warfarine", "category": "Médicaments", "tip": "Anticoagulant (antagoniste de la vitamine K) — Prévention de l'AVC cardio-embolique"}, {"term": "Coumadin", "category": "Médicaments", "tip": "Anticoagulant (antagoniste de la vitamine K) — Prévention de l'AVC cardio-embolique"}, {"term": "Altéplase", "category": "Médicaments", "tip": "Thrombolytique — AVC ischémique aigu (fenêtre de 4,5 h)"}, {"term": "Activase (tPA)", "category": "Médicaments", "tip": "Thrombolytique — AVC ischémique aigu (fenêtre de 4,5 h)"}, {"term": "Ténectéplase", "category": "Médicaments", "tip": "Thrombolytique — AVC ischémique aigu"}, {"term": "TNKase", "category": "Médicaments", "tip": "Thrombolytique — AVC ischémique aigu"}, {"term": "Donépézil", "category": "Médicaments", "tip": "Inhibiteur de la cholinestérase — Maladie d'Alzheimer"}, {"term": "Aricept", "category": "Médicaments", "tip": "Inhibiteur de la cholinestérase — Maladie d'Alzheimer"}, {"term": "Rivastigmine", "category": "Médicaments", "tip": "Inhibiteur de la cholinestérase — Maladie d'Alzheimer, démence parkinsonienne"}, {"term": "Exelon", "category": "Médicaments", "tip": "Inhibiteur de la cholinestérase — Maladie d'Alzheimer, démence parkinsonienne"}, {"term": "Galantamine", "category": "Médicaments", "tip": "Inhibiteur de la cholinestérase — Maladie d'Alzheimer"}, {"term": "Reminyl", "category": "Médicaments", "tip": "Inhibiteur de la cholinestérase — Maladie d'Alzheimer"}, {"term": "Mémantine", "category": "Médicaments", "tip": "Antagoniste NMDA — Maladie d'Alzheimer (modérée à sévère)"}, {"term": "Ebixa", "category": "Médicaments", "tip": "Antagoniste NMDA — Maladie d'Alzheimer (modérée à sévère)"}, {"term": "Lécanemab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-amyloïde) — Maladie d'Alzheimer précoce"}, {"term": "Leqembi", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-amyloïde) — Maladie d'Alzheimer précoce"}, {"term": "Modafinil", "category": "Médicaments", "tip": "Stimulant de l'éveil — Narcolepsie, somnolence diurne excessive"}, {"term": "Alertec", "category": "Médicaments", "tip": "Stimulant de l'éveil — Narcolepsie, somnolence diurne excessive"}, {"term": "Oxybate de sodium", "category": "Médicaments", "tip": "Dépresseur du SNC — Narcolepsie avec cataplexie"}, {"term": "Xyrem", "category": "Médicaments", "tip": "Dépresseur du SNC — Narcolepsie avec cataplexie"}, {"term": "Bétahistine", "category": "Médicaments", "tip": "Analogue de l'histamine — Vertige (maladie de Ménière)"}, {"term": "Serc", "category": "Médicaments", "tip": "Analogue de l'histamine — Vertige (maladie de Ménière)"}, {"term": "Méclizine", "category": "Médicaments", "tip": "Antihistaminique — Vertige, mal des transports"}, {"term": "Bonamine", "category": "Médicaments", "tip": "Antihistaminique — Vertige, mal des transports"}, {"term": "Antivert", "category": "Médicaments", "tip": "Antihistaminique — Vertige, mal des transports"}, {"term": "Midodrine", "category": "Médicaments", "tip": "Agoniste alpha-1 adrénergique — Hypotension orthostatique"}, {"term": "Amatine", "category": "Médicaments", "tip": "Agoniste alpha-1 adrénergique — Hypotension orthostatique"}, {"term": "Fludrocortisone", "category": "Médicaments", "tip": "Minéralocorticoïde — Hypotension orthostatique"}, {"term": "Florinef", "category": "Médicaments", "tip": "Minéralocorticoïde — Hypotension orthostatique"}, {"term": "Droxidopa", "category": "Médicaments", "tip": "Précurseur de la noradrénaline — Hypotension orthostatique neurogène"}, {"term": "Northera", "category": "Médicaments", "tip": "Précurseur de la noradrénaline — Hypotension orthostatique neurogène"}, {"term": "Témozolomide", "category": "Médicaments", "tip": "Agent alkylant (chimiothérapie orale) — Gliomes de haut grade"}, {"term": "Temodal", "category": "Médicaments", "tip": "Agent alkylant (chimiothérapie orale) — Gliomes de haut grade"}, {"term": "Bévacizumab", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-VEGF) — Glioblastome récidivant, œdème péritumoral"}, {"term": "Avastin", "category": "Médicaments", "tip": "Anticorps monoclonal (anti-VEGF) — Glioblastome récidivant, œdème péritumoral"}, {"term": "Dexaméthasone", "category": "Médicaments", "tip": "Corticostéroïde — Œdème péritumoral, compression médullaire"}, {"term": "Decadron", "category": "Médicaments", "tip": "Corticostéroïde — Œdème péritumoral, compression médullaire"}, {"term": "Aciclovir", "category": "Médicaments", "tip": "Antiviral — Encéphalite herpétique"}, {"term": "Zovirax", "category": "Médicaments", "tip": "Antiviral — Encéphalite herpétique"}, {"term": "Ceftriaxone", "category": "Médicaments", "tip": "Antibiotique (céphalosporine) — Méningite bactérienne"}, {"term": "Rocephin", "category": "Médicaments", "tip": "Antibiotique (céphalosporine) — Méningite bactérienne"}, {"term": "Vigabatrin", "category": "Médicaments", "tip": "Antiépileptique — Spasmes infantiles, épilepsie focale réfractaire"}, {"term": "Sabril", "category": "Médicaments", "tip": "Antiépileptique — Spasmes infantiles, épilepsie focale réfractaire"}, {"term": "ACTH (hormone corticotrope)", "category": "Médicaments", "tip": "Hormone — Spasmes infantiles (syndrome de West)"}, {"term": "Acthar Gel", "category": "Médicaments", "tip": "Hormone — Spasmes infantiles (syndrome de West)"}, {"term": "Duloxétine", "category": "Médicaments", "tip": "Antidépresseur (IRSN) — Douleur neuropathique, fibromyalgie"}, {"term": "Cymbalta", "category": "Médicaments", "tip": "Antidépresseur (IRSN) — Douleur neuropathique, fibromyalgie"}, {"term": "Amitriptyline", "category": "Médicaments", "tip": "Antidépresseur tricyclique — Douleur neuropathique, prophylaxie migraineuse"}, {"term": "Elavil", "category": "Médicaments", "tip": "Antidépresseur tricyclique — Douleur neuropathique, prophylaxie migraineuse"}, {"term": "Parésie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Diminution partielle de la force musculaire, par opposition à la plégie (paralysie complète)."}, {"term": "Plégie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Perte complète de la force musculaire volontaire d'un territoire donné."}, {"term": "paralysie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Perte complète de la force musculaire volontaire d'un territoire donné."}, {"term": "Hémiparésie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atteinte motrice touchant un hémicorps, typique d'une lésion cérébrale controlatérale."}, {"term": "hémiplégie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atteinte motrice touchant un hémicorps, typique d'une lésion cérébrale controlatérale."}, {"term": "Paraparésie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atteinte motrice touchant les deux membres inférieurs, évocatrice d'une atteinte médullaire."}, {"term": "paraplégie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atteinte motrice touchant les deux membres inférieurs, évocatrice d'une atteinte médullaire."}, {"term": "Tétraparésie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atteinte motrice touchant les quatre membres, évocatrice d'une atteinte médullaire haute ou diffuse."}, {"term": "tétraplégie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atteinte motrice touchant les quatre membres, évocatrice d'une atteinte médullaire haute ou diffuse."}, {"term": "Spasticité", "category": "Termes cliniques", "tip": "Sémiologie motrice — Hypertonie de type pyramidal, dépendante de la vitesse d'étirement musculaire (signe de l'atteinte du motoneurone supérieur)."}, {"term": "Rigidité", "category": "Termes cliniques", "tip": "Sémiologie motrice — Hypertonie plastique, indépendante de la vitesse, classique du syndrome parkinsonien (« roue dentée »)."}, {"term": "Bradykinésie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Lenteur et réduction de l'amplitude des mouvements, élément cardinal du syndrome parkinsonien."}, {"term": "Fasciculation", "category": "Termes cliniques", "tip": "Sémiologie motrice — Contraction spontanée, visible et non rythmique d'un faisceau de fibres musculaires; signe d'atteinte du motoneurone inférieur."}, {"term": "Myotonie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Difficulté de décontraction musculaire après une contraction volontaire, typique des dystrophies myotoniques et des canalopathies musculaires."}, {"term": "Amyotrophie", "category": "Termes cliniques", "tip": "Sémiologie motrice — Atrophie musculaire, souvent secondaire à une dénervation dans les atteintes neuromusculaires."}, {"term": "Aréflexie", "category": "Termes cliniques", "tip": "Réflexes — Abolition des réflexes ostéotendineux, évocatrice d'une atteinte du motoneurone inférieur ou du nerf périphérique."}, {"term": "Hyperréflexie", "category": "Termes cliniques", "tip": "Réflexes — Exagération des réflexes ostéotendineux, évocatrice d'une atteinte du motoneurone supérieur (voie pyramidale)."}, {"term": "Signe de Babinski", "category": "Termes cliniques", "tip": "Réflexes — Extension lente du gros orteil à la stimulation plantaire; signe pathognomonique d'atteinte pyramidale chez l'adulte."}, {"term": "Clonus", "category": "Termes cliniques", "tip": "Réflexes — Succession de contractions rythmiques réflexes en réponse à un étirement musculaire soutenu; signe pyramidal."}, {"term": "Paresthésie", "category": "Termes cliniques", "tip": "Sensibilité — Sensation anormale non douloureuse (fourmillement, picotement) sans stimulus apparent."}, {"term": "Dysesthésie", "category": "Termes cliniques", "tip": "Sensibilité — Sensation anormale et désagréable, souvent douloureuse, déclenchée par un stimulus habituellement non nociceptif."}, {"term": "Allodynie", "category": "Termes cliniques", "tip": "Sensibilité — Douleur provoquée par un stimulus normalement non douloureux (ex. effleurement)."}, {"term": "Hypoesthésie", "category": "Termes cliniques", "tip": "Sensibilité — Diminution ou abolition de la sensibilité dans un territoire donné."}, {"term": "anesthésie", "category": "Termes cliniques", "tip": "Sensibilité — Diminution ou abolition de la sensibilité dans un territoire donné."}, {"term": "Douleur neuropathique", "category": "Termes cliniques", "tip": "Sensibilité — Douleur causée par une lésion ou une maladie du système somatosensoriel, central ou périphérique."}, {"term": "Ataxie", "category": "Termes cliniques", "tip": "Cérébelleux — Trouble de la coordination des mouvements, non expliqué par un déficit moteur ou sensitif."}, {"term": "Dysmétrie", "category": "Termes cliniques", "tip": "Cérébelleux — Erreur d'estimation de la distance et de l'amplitude d'un mouvement volontaire (ex. épreuve doigt-nez)."}, {"term": "Nystagmus", "category": "Termes cliniques", "tip": "Cérébelleux / vestibulaire — Mouvement oscillatoire involontaire des yeux, d'origine cérébelleuse, vestibulaire ou centrale."}, {"term": "Dysarthrie", "category": "Termes cliniques", "tip": "Bulbaire / cérébelleux — Trouble de l'articulation de la parole d'origine neurologique, sans atteinte du langage lui-même."}, {"term": "Dysphagie", "category": "Termes cliniques", "tip": "Bulbaire — Difficulté à avaler, pouvant être oropharyngée ou œsophagienne; fréquente dans les atteintes bulbaires (SLA, myasthénie)."}, {"term": "Tremblement", "category": "Termes cliniques", "tip": "Mouvements anormaux — Oscillation rythmique involontaire d'une partie du corps; peut être de repos, postural ou d'action."}, {"term": "Dystonie", "category": "Termes cliniques", "tip": "Mouvements anormaux — Contractions musculaires soutenues ou intermittentes causant des postures ou mouvements répétitifs anormaux."}, {"term": "Chorée", "category": "Termes cliniques", "tip": "Mouvements anormaux — Mouvements involontaires brefs, irréguliers et imprévisibles, migrant d'une partie du corps à l'autre (ex. maladie de Huntington)."}, {"term": "Myoclonie", "category": "Termes cliniques", "tip": "Mouvements anormaux — Contraction musculaire brève et brusque, de type choc, d'origine corticale, sous-corticale ou spinale."}, {"term": "Tic", "category": "Termes cliniques", "tip": "Mouvements anormaux — Mouvement ou vocalisation brusque, répétitif, stéréotypé, souvent suppressible temporairement."}, {"term": "Aphasie", "category": "Termes cliniques", "tip": "Cognition/langage — Trouble acquis du langage, expressif et/ou réceptif, secondaire à une lésion cérébrale (souvent hémisphère dominant)."}, {"term": "Apraxie", "category": "Termes cliniques", "tip": "Cognition — Incapacité à exécuter un geste appris malgré une fonction motrice et une compréhension préservées."}, {"term": "Agnosie", "category": "Termes cliniques", "tip": "Cognition — Incapacité à reconnaître un stimulus (visuel, auditif, tactile) malgré des fonctions sensorielles primaires intactes."}, {"term": "Démence", "category": "Termes cliniques", "tip": "Cognition — Déclin cognitif acquis, suffisamment sévère pour interférer avec l'autonomie fonctionnelle."}, {"term": "Trouble cognitif léger", "category": "Termes cliniques", "tip": "Cognition — Déclin cognitif objectivable mais n'entraînant pas de perte significative d'autonomie fonctionnelle."}, {"term": "Crise épileptique focale", "category": "Termes cliniques", "tip": "Épilepsie — Décharge électrique anormale débutant dans un réseau limité à un hémisphère cérébral."}, {"term": "Crise épileptique généralisée", "category": "Termes cliniques", "tip": "Épilepsie — Décharge électrique impliquant d'emblée des réseaux bilatéraux."}, {"term": "Aura épileptique", "category": "Termes cliniques", "tip": "Épilepsie — Symptôme initial d'une crise focale, perçu par le patient, correspondant à la zone corticale impliquée."}, {"term": "État de mal épileptique", "category": "Termes cliniques", "tip": "Épilepsie — Crise prolongée (>5 min) ou crises répétées sans récupération complète entre elles; urgence médicale."}, {"term": "Neuropathie périphérique", "category": "Termes cliniques", "tip": "Neuromusculaire — Atteinte des nerfs périphériques, pouvant être sensitive, motrice, sensitivomotrice ou autonome."}, {"term": "Radiculopathie", "category": "Termes cliniques", "tip": "Neuromusculaire — Atteinte d'une racine nerveuse, typiquement d'origine compressive (hernie discale, sténose)."}, {"term": "Plexopathie", "category": "Termes cliniques", "tip": "Neuromusculaire — Atteinte du plexus brachial ou lombosacré, en amont de la division en nerfs périphériques distincts."}, {"term": "Myopathie", "category": "Termes cliniques", "tip": "Neuromusculaire — Maladie primitive du muscle, se manifestant typiquement par une faiblesse proximale symétrique."}, {"term": "Canalopathie", "category": "Termes cliniques", "tip": "Neuromusculaire génétique — Maladie causée par le dysfonctionnement d'un canal ionique (ex. paralysies périodiques, certaines myotonies)."}, {"term": "Bloc de conduction", "category": "Termes cliniques", "tip": "Électrophysiologie — Diminution focale de l'amplitude du potentiel moteur le long d'un trajet nerveux, évocatrice d'une atteinte démyélinisante focale."}, {"term": "Décrément", "category": "Termes cliniques", "tip": "Électrophysiologie — Variation de l'amplitude de la réponse motrice à la stimulation nerveuse répétitive; décrément évocateur de myasthénie, incrément de LEMS."}, {"term": "incrément à la stimulation répétitive", "category": "Termes cliniques", "tip": "Électrophysiologie — Variation de l'amplitude de la réponse motrice à la stimulation nerveuse répétitive; décrément évocateur de myasthénie, incrément de LEMS."}, {"term": "Pénétrance", "category": "Termes cliniques", "tip": "Génétique — Proportion des porteurs d'une mutation qui développent effectivement le phénotype associé."}, {"term": "Expressivité variable", "category": "Termes cliniques", "tip": "Génétique — Variation de la sévérité ou du type de manifestations cliniques entre porteurs d'une même mutation."}, {"term": "Anticipation (génétique)", "category": "Termes cliniques", "tip": "Génétique — Aggravation et/ou apparition plus précoce d'une maladie génétique au fil des générations, typique des maladies à expansion de répétitions."}, {"term": "Expansion de répétitions", "category": "Termes cliniques", "tip": "Génétique — Mutation caractérisée par l'augmentation du nombre de répétitions d'une courte séquence d'ADN (ex. CAG, GAA, GGGGCC)."}, {"term": "Mutation de novo", "category": "Termes cliniques", "tip": "Génétique — Variant génétique nouveau, absent chez les deux parents, apparu spontanément."}, {"term": "Hétérozygote composite", "category": "Termes cliniques", "tip": "Génétique — Porteur de deux mutations différentes, une sur chaque allèle d'un même gène, dans une maladie récessive."}, {"term": "Conseil génétique", "category": "Termes cliniques", "tip": "Génétique — Processus d'information et d'accompagnement d'un patient et de sa famille concernant les implications d'un résultat génétique."}, {"term": "Diplopie", "category": "Termes cliniques", "tip": "Neuro-ophtalmologie — Perception dédoublée d'un objet, résultant d'un défaut d'alignement des axes visuels."}, {"term": "Ptosis", "category": "Termes cliniques", "tip": "Neuro-ophtalmologie — Chute de la paupière supérieure, pouvant traduire une atteinte du III, un syndrome de Horner ou une myasthénie."}, {"term": "Anisocorie", "category": "Termes cliniques", "tip": "Neuro-ophtalmologie — Différence de diamètre pupillaire entre les deux yeux."}, {"term": "Syndrome de Horner", "category": "Termes cliniques", "tip": "Neuro-ophtalmologie — Triade ptosis-myosis-énophtalmie par atteinte de la voie sympathique oculaire."}, {"term": "Papillœdème", "category": "Termes cliniques", "tip": "Neuro-ophtalmologie — Œdème de la papille optique visible au fond d'œil, signe d'hypertension intracrânienne."}, {"term": "Vertige", "category": "Termes cliniques", "tip": "Neuro-otologie — Illusion de mouvement (rotatoire ou non) de soi-même ou de l'environnement, à distinguer des étourdissements non vertigineux."}, {"term": "Nystagmus positionnel", "category": "Termes cliniques", "tip": "Neuro-otologie — Nystagmus déclenché par un changement de position de la tête, typique du VPPB."}, {"term": "Cataplexie", "category": "Termes cliniques", "tip": "Sommeil — Perte brutale et transitoire du tonus musculaire déclenchée par une émotion forte, caractéristique de la narcolepsie de type 1."}, {"term": "Somnolence diurne excessive", "category": "Termes cliniques", "tip": "Sommeil — Tendance excessive à s'endormir en journée, symptôme cardinal du SAOS et de la narcolepsie."}, {"term": "Parasomnie", "category": "Termes cliniques", "tip": "Sommeil — Comportement anormal survenant pendant le sommeil (somnambulisme, trouble du comportement en sommeil paradoxal, etc.)."}, {"term": "Trouble du comportement en sommeil paradoxal", "category": "Termes cliniques", "tip": "Sommeil — Perte de l'atonie musculaire normale du sommeil paradoxal, avec mise en acte des rêves; marqueur précoce possible de synucléinopathie."}, {"term": "Syndrome de masse intracrânien", "category": "Termes cliniques", "tip": "Neuro-oncologie — Ensemble de signes (céphalée, nausées, déficit focal) liés à l'effet de masse d'une lésion intracrânienne."}, {"term": "Radionécrose", "category": "Termes cliniques", "tip": "Neuro-oncologie — Nécrose tissulaire cérébrale retardée secondaire à la radiothérapie, pouvant mimer une récidive tumorale à l'imagerie."}, {"term": "Méningisme", "category": "Termes cliniques", "tip": "Infections du SNC — Ensemble de signes cliniques (raideur de nuque, signe de Kernig/Brudzinski) évoquant une irritation méningée."}, {"term": "Signe de Kernig", "category": "Termes cliniques", "tip": "Infections du SNC — Douleur/résistance à l'extension du genou, jambe fléchie sur la cuisse, évocatrice d'irritation méningée."}, {"term": "Dysautonomie", "category": "Termes cliniques", "tip": "Neurologie autonome — Dysfonctionnement du système nerveux autonome, touchant la tension artérielle, la fréquence cardiaque, la sudation, la fonction digestive ou vésicale."}, {"term": "Test d'inclinaison (tilt test)", "category": "Termes cliniques", "tip": "Neurologie autonome — Épreuve évaluant la réponse tensionnelle et cardiaque au passage à la verticale, utile au diagnostic de syncope et de dysautonomie."}, {"term": "Retard de développement", "category": "Termes cliniques", "tip": "Neurologie pédiatrique — Acquisition retardée des étapes motrices, langagières ou cognitives attendues pour l'âge."}, {"term": "Régression développementale", "category": "Termes cliniques", "tip": "Neurologie pédiatrique — Perte d'acquis développementaux déjà obtenus, signe d'alarme orientant vers une maladie neurodégénérative ou métabolique."}, {"term": "Céphalée en coup de tonnerre", "category": "Termes cliniques", "tip": "Céphalées — Céphalée d'intensité maximale d'emblée, devant faire éliminer une hémorragie sous-arachnoïdienne."}, {"term": "Migraine avec aura", "category": "Termes cliniques", "tip": "Céphalées — Migraine précédée de symptômes neurologiques focaux transitoires (visuels, sensitifs, etc.), typiquement réversibles en moins d'une heure."}, {"term": "Syndrome du tunnel carpien", "category": "Termes cliniques", "tip": "Neuropathie compressive — Compression du nerf médian au poignet; cause la plus fréquente de neuropathie compressive."}, {"term": "Syndrome du tunnel cubital", "category": "Termes cliniques", "tip": "Neuropathie compressive — Compression du nerf ulnaire au coude, deuxième neuropathie compressive la plus fréquente du membre supérieur."}, {"term": "Méralgie paresthésique", "category": "Termes cliniques", "tip": "Neuropathie compressive — Compression du nerf fémoro-cutané latéral, causant des paresthésies de la face antéro-latérale de la cuisse."}, {"term": "Hypertension artérielle", "category": "Médecine interne", "tip": "Cardiologie — Élévation chronique de la pression artérielle systémique. — Principal facteur de risque modifiable d'AVC ischémique et hémorragique."}, {"term": "Fibrillation auriculaire", "category": "Médecine interne", "tip": "Cardiologie — Arythmie supraventriculaire irrégulière favorisant la stase auriculaire. — Cause majeure d'AVC ischémique cardio-embolique; indication d'anticoagulation."}, {"term": "Insuffisance cardiaque", "category": "Médecine interne", "tip": "Cardiologie — Incapacité du cœur à assurer un débit sanguin suffisant aux besoins de l'organisme. — Facteur de risque vasculaire cérébral; certains traitements interagissent avec la neurologie (ex. anticoagulation)."}, {"term": "Infarctus du myocarde", "category": "Médecine interne", "tip": "Cardiologie — Nécrose du muscle cardiaque secondaire à une ischémie prolongée. — Partage des facteurs de risque avec l'AVC; source potentielle d'embolie (thrombus mural)."}, {"term": "Endocardite infectieuse", "category": "Médecine interne", "tip": "Cardiologie / infectiologie — Infection des valves ou de l'endocarde, souvent bactérienne. — Cause d'AVC embolique septique et d'anévrismes mycotiques."}, {"term": "MPOC (bronchopneumopathie chronique obstructive)", "category": "Médecine interne", "tip": "Pneumologie — Maladie respiratoire chronique obstructive, principalement liée au tabagisme. — Comorbidité fréquente influençant la ventilation dans les maladies neuromusculaires."}, {"term": "Asthme", "category": "Médecine interne", "tip": "Pneumologie — Maladie inflammatoire chronique des voies aériennes avec bronchospasme réversible. — Certains traitements neurologiques (bêtabloquants) sont à utiliser avec prudence."}, {"term": "Pneumonie communautaire", "category": "Médecine interne", "tip": "Pneumologie — Infection aiguë du parenchyme pulmonaire acquise hors du milieu hospitalier. — Complication fréquente des maladies neuromusculaires et des atteintes de la déglutition (fausse route)."}, {"term": "Embolie pulmonaire", "category": "Médecine interne", "tip": "Pneumologie — Obstruction d'une artère pulmonaire par un thrombus, le plus souvent d'origine veineuse profonde. — Risque accru en cas d'immobilisation prolongée (AVC, maladies neuromusculaires)."}, {"term": "Apnée obstructive du sommeil (SAOS)", "category": "Médecine interne", "tip": "Pneumologie / sommeil — Collapsus répété des voies aériennes supérieures pendant le sommeil. — Facteur de risque vasculaire cérébral et cause fréquente de céphalées matinales et de fatigue."}, {"term": "Diabète de type 1", "category": "Médecine interne", "tip": "Endocrinologie — Maladie auto-immune détruisant les cellules bêta pancréatiques, avec insulinopénie absolue. — Cause de neuropathie périphérique et de facteurs de risque vasculaire cérébral."}, {"term": "Diabète de type 2", "category": "Médecine interne", "tip": "Endocrinologie — Trouble métabolique associant insulinorésistance et déficit relatif en insuline. — Cause majeure de polyneuropathie diabétique et facteur de risque d'AVC."}, {"term": "Hypothyroïdie", "category": "Médecine interne", "tip": "Endocrinologie — Insuffisance de production d'hormones thyroïdiennes. — Cause réversible de ralentissement cognitif, de myopathie et de neuropathie (tunnel carpien)."}, {"term": "Hyperthyroïdie", "category": "Médecine interne", "tip": "Endocrinologie — Excès d'hormones thyroïdiennes, souvent d'origine auto-immune. — Associée à tremblement, myopathie proximale et parfois ophtalmopathie (orbitopathie basedowienne)."}, {"term": "maladie de Basedow", "category": "Médecine interne", "tip": "Endocrinologie — Excès d'hormones thyroïdiennes, souvent d'origine auto-immune. — Associée à tremblement, myopathie proximale et parfois ophtalmopathie (orbitopathie basedowienne)."}, {"term": "Insuffisance surrénalienne (maladie d'Addison)", "category": "Médecine interne", "tip": "Endocrinologie — Déficit de production des hormones corticosurrénaliennes. — Peut se manifester par fatigue, hypotension orthostatique et confusion."}, {"term": "Insuffisance rénale chronique", "category": "Médecine interne", "tip": "Néphrologie — Déclin progressif et irréversible de la fonction rénale. — Nécessite l'ajustement de nombreux médicaments neurologiques (antiépileptiques, anticoagulants)."}, {"term": "Syndrome néphrotique", "category": "Médecine interne", "tip": "Néphrologie — Protéinurie massive avec hypoalbuminémie et œdèmes. — Associé à un risque accru de thromboses, incluant les thromboses veineuses cérébrales."}, {"term": "Maladie cœliaque", "category": "Médecine interne", "tip": "Gastroentérologie — Entéropathie auto-immune déclenchée par le gluten chez les sujets prédisposés. — Associée à l'ataxie au gluten et à certaines neuropathies périphériques."}, {"term": "Maladie de Crohn", "category": "Médecine interne", "tip": "Gastroentérologie — Maladie inflammatoire chronique de l'intestin pouvant toucher tout le tube digestif. — Carences vitaminiques (B12) associées pouvant causer une atteinte neurologique."}, {"term": "Colite ulcéreuse", "category": "Médecine interne", "tip": "Gastroentérologie — Maladie inflammatoire chronique limitée au côlon et au rectum. — Partage certains traitements immunosuppresseurs avec la neurologie auto-immune."}, {"term": "Cirrhose hépatique", "category": "Médecine interne", "tip": "Gastroentérologie — Fibrose hépatique diffuse avec perte de l'architecture normale du foie. — Cause d'encéphalopathie hépatique, un diagnostic différentiel important de confusion."}, {"term": "Anémie ferriprive", "category": "Médecine interne", "tip": "Hématologie — Anémie par carence en fer, cause la plus fréquente d'anémie. — Peut aggraver le syndrome des jambes sans repos et causer une fatigue cognitive."}, {"term": "Carence en vitamine B12", "category": "Médecine interne", "tip": "Hématologie — Déficit en cobalamine, souvent par malabsorption (anémie pernicieuse). — Cause de neuropathie périphérique et de dégénérescence combinée de la moelle (sclérose combinée)."}, {"term": "Lymphome non hodgkinien", "category": "Médecine interne", "tip": "Oncologie — Prolifération maligne des lymphocytes en dehors de la moelle osseuse. — Peut se compliquer d'atteinte neurologique paranéoplasique ou d'infiltration méningée."}, {"term": "Myélome multiple", "category": "Médecine interne", "tip": "Oncologie — Prolifération maligne des plasmocytes médullaires. — Associé à des neuropathies (dont le syndrome POEMS) et à des tassements vertébraux."}, {"term": "Infection au VIH", "category": "Médecine interne", "tip": "Infectiologie — Infection chronique par le virus de l'immunodéficience humaine. — Cause de complications neurologiques directes (encéphalopathie) ou opportunistes (LEMP, toxoplasmose)."}, {"term": "Hépatite C", "category": "Médecine interne", "tip": "Infectiologie — Infection virale chronique du foie par le virus de l'hépatite C. — Associée à des vasculites (cryoglobulinémie) pouvant causer une neuropathie périphérique."}, {"term": "Tuberculose", "category": "Médecine interne", "tip": "Infectiologie — Infection bactérienne à Mycobacterium tuberculosis, principalement pulmonaire. — Cause de méningite tuberculeuse et de tuberculomes intracrâniens."}, {"term": "Sepsis", "category": "Médecine interne", "tip": "Infectiologie / soins critiques — Réponse systémique dysrégulée à une infection, pouvant mener à une défaillance d'organes. — Cause fréquente d'encéphalopathie et de polyneuromyopathie de soins intensifs."}, {"term": "choc septique", "category": "Médecine interne", "tip": "Infectiologie / soins critiques — Réponse systémique dysrégulée à une infection, pouvant mener à une défaillance d'organes. — Cause fréquente d'encéphalopathie et de polyneuromyopathie de soins intensifs."}, {"term": "Polyarthrite rhumatoïde", "category": "Médecine interne", "tip": "Rhumatologie — Maladie auto-immune inflammatoire chronique touchant principalement les articulations. — Peut causer une atteinte du rachis cervical (subluxation C1-C2) et des neuropathies compressives."}, {"term": "Lupus érythémateux disséminé", "category": "Médecine interne", "tip": "Rhumatologie / immunologie — Maladie auto-immune systémique pouvant toucher de multiples organes. — Cause de neuro-lupus (AVC, crises épileptiques, atteinte cognitive, myélite)."}, {"term": "Syndrome de Sjögren", "category": "Médecine interne", "tip": "Rhumatologie / immunologie — Maladie auto-immune touchant les glandes exocrines (sécheresse oculaire et buccale). — Cause fréquente de neuropathie sensitive pure et de ganglionopathie."}, {"term": "Artérite à cellules géantes (maladie de Horton)", "category": "Médecine interne", "tip": "Rhumatologie / vasculite — Vasculite des artères de gros et moyen calibre touchant surtout les sujets âgés. — Urgence neuro-ophtalmologique par risque de cécité irréversible; associée à la pseudopolyarthrite rhizomélique."}, {"term": "Sarcoïdose", "category": "Médecine interne", "tip": "Immunologie / pneumologie — Maladie granulomateuse systémique d'étiologie inconnue, touchant souvent les poumons. — Cause de neurosarcoïdose (atteinte des nerfs crâniens, méningite chronique, myélite)."}, {"term": "Craniotomie", "category": "Chirurgies", "tip": "Neurochirurgie — Ouverture chirurgicale de la boîte crânienne avec volet osseux. — Exérèse tumorale, évacuation d'hématome, accès à une lésion intracrânienne."}, {"term": "Exérèse de tumeur cérébrale", "category": "Chirurgies", "tip": "Neurochirurgie — Résection chirurgicale d'une tumeur intracrânienne, souvent guidée par neuronavigation. — Gliomes, méningiomes, métastases cérébrales."}, {"term": "Clippage d'anévrisme", "category": "Chirurgies", "tip": "Neurochirurgie vasculaire — Pose chirurgicale d'un clip métallique à la base d'un anévrisme cérébral. — Prévention ou traitement de la rupture d'anévrisme (hémorragie sous-arachnoïdienne)."}, {"term": "Embolisation endovasculaire d'anévrisme", "category": "Chirurgies", "tip": "Neuroradiologie interventionnelle — Occlusion d'un anévrisme par voie endovasculaire (coils, stents diverteurs de flux). — Alternative moins invasive au clippage chirurgical."}, {"term": "Thrombectomie mécanique", "category": "Chirurgies", "tip": "Neuroradiologie interventionnelle — Retrait endovasculaire d'un caillot occlusant une artère cérébrale. — AVC ischémique aigu par occlusion de gros vaisseau."}, {"term": "Endartériectomie carotidienne", "category": "Chirurgies", "tip": "Chirurgie vasculaire — Ablation chirurgicale de la plaque d'athérome de l'artère carotide. — Prévention de l'AVC en cas de sténose carotidienne significative."}, {"term": "Dérivation ventriculo-péritonéale", "category": "Chirurgies", "tip": "Neurochirurgie — Implantation d'un cathéter drainant le LCR des ventricules cérébraux vers le péritoine. — Hydrocéphalie chronique ou aiguë."}, {"term": "Décompression microvasculaire", "category": "Chirurgies", "tip": "Neurochirurgie fonctionnelle — Séparation chirurgicale d'un vaisseau sanguin comprimant un nerf crânien. — Névralgie du trijumeau réfractaire, spasme hémifacial."}, {"term": "Chirurgie de l'épilepsie (lobectomie temporale)", "category": "Chirurgies", "tip": "Neurochirurgie fonctionnelle — Résection du foyer épileptogène, le plus souvent temporal. — Épilepsie focale pharmacorésistante bien localisée."}, {"term": "Implantation de stimulateur cérébral profond (SCP/DBS)", "category": "Chirurgies", "tip": "Neurochirurgie fonctionnelle — Implantation d'électrodes intracérébrales reliées à un neurostimulateur. — Maladie de Parkinson, tremblement essentiel, dystonie réfractaires au traitement médical."}, {"term": "Laminectomie", "category": "Chirurgies", "tip": "Neurochirurgie spinale — Résection de la lame vertébrale pour décomprimer le canal rachidien. — Sténose spinale symptomatique, tumeur intracanalaire."}, {"term": "Discectomie", "category": "Chirurgies", "tip": "Neurochirurgie spinale — Ablation partielle ou totale d'un disque intervertébral hernié. — Hernie discale symptomatique avec radiculopathie réfractaire au traitement conservateur."}, {"term": "Arthrodèse (fusion) vertébrale", "category": "Chirurgies", "tip": "Neurochirurgie / orthopédie spinale — Fixation de deux vertèbres ou plus à l'aide de matériel (vis, tiges) pour stabiliser le rachis. — Instabilité rachidienne, spondylolisthésis, déformation."}, {"term": "Vertébroplastie", "category": "Chirurgies", "tip": "Neuroradiologie interventionnelle — Injection de ciment dans le corps vertébral pour stabiliser une fracture. — Fracture vertébrale ostéoporotique ou tumorale douloureuse."}, {"term": "cyphoplastie", "category": "Chirurgies", "tip": "Neuroradiologie interventionnelle — Injection de ciment dans le corps vertébral pour stabiliser une fracture. — Fracture vertébrale ostéoporotique ou tumorale douloureuse."}, {"term": "Décompression du tunnel carpien", "category": "Chirurgies", "tip": "Chirurgie de la main — Section du ligament transverse du carpe pour décomprimer le nerf médian. — Syndrome du tunnel carpien réfractaire au traitement conservateur."}, {"term": "Transposition du nerf ulnaire", "category": "Chirurgies", "tip": "Chirurgie de la main — Déplacement chirurgical du nerf ulnaire en avant de l'épicondyle médial. — Syndrome du tunnel cubital réfractaire."}, {"term": "Appendicectomie", "category": "Chirurgies", "tip": "Chirurgie générale — Ablation chirurgicale de l'appendice. — Appendicite aiguë."}, {"term": "Cholécystectomie", "category": "Chirurgies", "tip": "Chirurgie générale — Ablation chirurgicale de la vésicule biliaire, le plus souvent par laparoscopie. — Lithiase biliaire symptomatique, cholécystite aiguë."}, {"term": "Hernioplastie inguinale", "category": "Chirurgies", "tip": "Chirurgie générale — Réparation chirurgicale d'une hernie inguinale, souvent avec renfort prothétique. — Hernie inguinale symptomatique."}, {"term": "Prothèse totale de hanche", "category": "Chirurgies", "tip": "Orthopédie — Remplacement de l'articulation coxo-fémorale par une prothèse. — Arthrose sévère de la hanche, fracture du col fémoral."}, {"term": "Prothèse totale de genou", "category": "Chirurgies", "tip": "Orthopédie — Remplacement de l'articulation du genou par une prothèse. — Arthrose sévère du genou réfractaire au traitement conservateur."}, {"term": "Pontage aorto-coronarien (PAC)", "category": "Chirurgies", "tip": "Chirurgie cardiaque — Revascularisation du myocarde à l'aide de greffons vasculaires. — Maladie coronarienne multitronculaire ou sténose significative du tronc commun."}, {"term": "Remplacement valvulaire cardiaque", "category": "Chirurgies", "tip": "Chirurgie cardiaque — Remplacement chirurgical ou percutané d'une valve cardiaque native par une prothèse. — Sténose ou insuffisance valvulaire sévère symptomatique."}, {"term": "Chirurgie bariatrique", "category": "Chirurgies", "tip": "Chirurgie générale — Intervention réduisant le volume gastrique ou modifiant le circuit digestif pour traiter l'obésité. — Obésité sévère avec comorbidités (ex. bypass gastrique, gastrectomie en manchon)."}, {"term": "Thyroïdectomie", "category": "Chirurgies", "tip": "Chirurgie générale / ORL — Ablation partielle ou totale de la glande thyroïde. — Cancer thyroïdien, goitre compressif, hyperthyroïdie réfractaire."}, {"term": "Césarienne", "category": "Chirurgies", "tip": "Obstétrique — Accouchement par incision chirurgicale de l'abdomen et de l'utérus. — Indications maternelles ou fœtales rendant l'accouchement vaginal risqué."}];
+  var GLOSSARY_CATEGORY_ORDER = ["Abréviations", "Médicaments", "Termes cliniques", "Médecine interne", "Chirurgies"];
+
+  function normalizeForSearch(str) {
+    return str
+      .normalize("NFD")
+      .replace(new RegExp("[̀-ͯ]", "g"), "")
+      .toLowerCase();
+  }
+
+  var glossarySearchEl = document.getElementById("glossary-search");
+  var glossaryResultsEl = document.getElementById("glossary-results");
+
+  function renderGlossaryResults(query) {
+    var normalizedQuery = normalizeForSearch(query.trim());
+    if (!normalizedQuery) {
+      glossaryResultsEl.classList.remove("visible");
+      glossaryResultsEl.innerHTML = "";
+      return;
+    }
+
+    var matches = GLOSSARY.filter(function (entry) {
+      return normalizeForSearch(entry.term).indexOf(normalizedQuery) !== -1;
+    }).slice(0, 60);
+
+    glossaryResultsEl.innerHTML = "";
+    glossaryResultsEl.classList.add("visible");
+
+    if (matches.length === 0) {
+      var none = document.createElement("p");
+      none.className = "glossary-no-results";
+      none.textContent = "Aucun terme trouvé.";
+      glossaryResultsEl.appendChild(none);
+      return;
+    }
+
+    GLOSSARY_CATEGORY_ORDER.forEach(function (category) {
+      var inCategory = matches.filter(function (entry) { return entry.category === category; });
+      if (inCategory.length === 0) return;
+
+      var heading = document.createElement("div");
+      heading.className = "glossary-category";
+      heading.textContent = category;
+      glossaryResultsEl.appendChild(heading);
+
+      var chips = document.createElement("div");
+      chips.className = "glossary-chips";
+      inCategory.forEach(function (entry) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "glossary-chip";
+        chip.textContent = entry.term;
+        if (entry.tip) chip.title = entry.tip;
+        chip.addEventListener("click", function () {
+          var toField = document.getElementById("dict-new-to");
+          var fromField = document.getElementById("dict-new-from");
+          toField.value = entry.term;
+          fromField.focus();
+        });
+        chips.appendChild(chip);
+      });
+      glossaryResultsEl.appendChild(chips);
+    });
+  }
+
+  glossarySearchEl.addEventListener("input", function () {
+    renderGlossaryResults(glossarySearchEl.value);
+  });
+
+  var sectionsEl = document.getElementById("sections");
+  var supportWarningEl = document.getElementById("support-warning");
+  var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var speechSupported = !!SpeechRecognitionCtor;
+  if (!speechSupported) supportWarningEl.style.display = "block";
+
+  var activeRecognition = null;
+  var activeSectionId = null;
+
+  function buildSectionCard(section) {
+    var card = document.createElement("div");
+    card.className = "card";
+
+    var h2 = document.createElement("h2");
+    h2.textContent = section.title;
+    card.appendChild(h2);
+
+    var help = document.createElement("p");
+    help.className = "help";
+    help.textContent = section.help;
+    card.appendChild(help);
+
+    var toolbar = document.createElement("div");
+    toolbar.className = "section-toolbar";
+
+    var micBtn = document.createElement("button");
+    micBtn.className = "mic";
+    micBtn.type = "button";
+    micBtn.textContent = "🎙 Dicter";
+    micBtn.disabled = !speechSupported;
+    toolbar.appendChild(micBtn);
+
+    var clearBtn = document.createElement("button");
+    clearBtn.className = "ghost";
+    clearBtn.type = "button";
+    clearBtn.textContent = "Effacer";
+    toolbar.appendChild(clearBtn);
+
+    card.appendChild(toolbar);
+
+    var textarea = document.createElement("textarea");
+    textarea.id = "section-" + section.id;
+    textarea.placeholder = "Dictez avec le micro ou écrivez ici…";
+    card.appendChild(textarea);
+
+    var interim = document.createElement("div");
+    interim.className = "interim";
+    card.appendChild(interim);
+
+    textarea.addEventListener("input", refreshOutput);
+
+    clearBtn.addEventListener("click", function () {
+      textarea.value = "";
+      textarea.focus();
+      refreshOutput();
+    });
+
+    micBtn.addEventListener("click", function () {
+      if (activeSectionId === section.id) {
+        stopRecognition();
+        return;
+      }
+      startRecognition(section.id, textarea, interim, micBtn);
+    });
+
+    return card;
+  }
+
+  SECTIONS.forEach(function (section) {
+    sectionsEl.appendChild(buildSectionCard(section));
+  });
+
+  function stopRecognition() {
+    if (activeRecognition) {
+      activeRecognition.manualStop = true;
+      activeRecognition.stop();
+    }
+  }
+
+  function startRecognition(sectionId, textarea, interimEl, micBtn) {
+    stopRecognition();
+
+    var recognition = new SpeechRecognitionCtor();
+    recognition.lang = document.getElementById("f-lang").value;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.manualStop = false;
+
+    activeRecognition = recognition;
+    activeSectionId = sectionId;
+    micBtn.classList.add("recording");
+    micBtn.innerHTML = '<span class="dot"></span>Arrêter';
+
+    recognition.onresult = function (event) {
+      var interimText = "";
+      var appended = false;
+      for (var i = event.resultIndex; i < event.results.length; i++) {
+        var result = event.results[i];
+        if (result.isFinal) {
+          var chunk = applyCorrections(result[0].transcript.trim());
+          if (chunk) {
+            var needsSpace = textarea.value && !/\s$/.test(textarea.value);
+            textarea.value += (needsSpace ? " " : "") + chunk;
+            appended = true;
+          }
+        } else {
+          interimText += result[0].transcript;
+        }
+      }
+      interimEl.textContent = interimText;
+      if (appended) refreshOutput();
+    };
+
+    recognition.onerror = function (event) {
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        interimEl.textContent = "Accès au micro refusé.";
+        recognition.manualStop = true;
+      } else if (event.error === "no-speech" || event.error === "aborted") {
+        // ignore, onend will decide whether to restart
+      } else {
+        interimEl.textContent = "Erreur de reconnaissance (" + event.error + ").";
+      }
+    };
+
+    recognition.onend = function () {
+      interimEl.textContent = "";
+      if (!recognition.manualStop && activeSectionId === sectionId) {
+        try {
+          recognition.start();
+          return;
+        } catch (e) {
+          // fall through to full stop
+        }
+      }
+      micBtn.classList.remove("recording");
+      micBtn.textContent = "🎙 Dicter";
+      if (activeSectionId === sectionId) {
+        activeSectionId = null;
+        activeRecognition = null;
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      interimEl.textContent = "Impossible de démarrer le micro.";
+    }
+  }
+
+  function cleanText(text) {
+    return applyCorrections(text)
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  function formatDate(value) {
+    if (!value) return "";
+    var parts = value.split("-");
+    if (parts.length !== 3) return value;
+    return parts[2] + "-" + parts[1] + "-" + parts[0];
+  }
+
+  function buildNote() {
+    var patient = document.getElementById("f-patient").value.trim();
+    var dossier = document.getElementById("f-dossier").value.trim();
+    var dateValue = document.getElementById("f-date").value;
+    var skipEmpty = document.getElementById("f-skip-empty").checked;
+
+    var lines = [];
+    lines.push("CONSULTATION EN NEUROLOGIE");
+    if (patient) lines.push("Patient : " + patient);
+    if (dossier) lines.push("N° de dossier : " + dossier);
+    lines.push("Date : " + (formatDate(dateValue) || "____________"));
+    lines.push("");
+
+    SECTIONS.forEach(function (section) {
+      var raw = document.getElementById("section-" + section.id).value;
+      var text = cleanText(raw);
+      if (!text && skipEmpty) return;
+      lines.push(section.title.toUpperCase());
+      lines.push(text || "—");
+      lines.push("");
+    });
+
+    return lines.join("\n").trim() + "\n";
+  }
+
+  var outputCard = document.getElementById("output-card");
+  var outputEl = document.getElementById("note-output");
+
+  function refreshOutput() {
+    outputEl.value = buildNote();
+  }
+
+  ["f-patient", "f-dossier", "f-date"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", refreshOutput);
+  });
+  document.getElementById("f-skip-empty").addEventListener("change", refreshOutput);
+
+  document.getElementById("btn-generate").addEventListener("click", function () {
+    refreshOutput();
+    outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  document.getElementById("btn-copy").addEventListener("click", function () {
+    outputEl.select();
+    navigator.clipboard && navigator.clipboard.writeText
+      ? navigator.clipboard.writeText(outputEl.value).then(function () {
+          flashButton(document.getElementById("btn-copy"), "Copié ✓");
+        }).catch(function () {
+          document.execCommand("copy");
+          flashButton(document.getElementById("btn-copy"), "Copié ✓");
+        })
+      : (document.execCommand("copy"), flashButton(document.getElementById("btn-copy"), "Copié ✓"));
+  });
+
+  function flashButton(btn, text) {
+    var original = btn.textContent;
+    btn.textContent = text;
+    setTimeout(function () { btn.textContent = original; }, 1500);
+  }
+
+  document.getElementById("btn-download").addEventListener("click", function () {
+    var blob = new Blob([outputEl.value], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var patient = document.getElementById("f-patient").value.trim();
+    var dateValue = document.getElementById("f-date").value || new Date().toISOString().slice(0, 10);
+    var safeName = (patient ? patient.replace(/[^a-z0-9]+/gi, "-") + "-" : "") + "note-neuro-" + dateValue;
+    a.href = url;
+    a.download = safeName + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("btn-reset").addEventListener("click", function () {
+    if (!confirm("Effacer tout le contenu saisi ?")) return;
+    stopRecognition();
+    document.getElementById("f-patient").value = "";
+    document.getElementById("f-dossier").value = "";
+    SECTIONS.forEach(function (section) {
+      document.getElementById("section-" + section.id).value = "";
+    });
+    refreshOutput();
+  });
+
+  var todayField = document.getElementById("f-date");
+  var today = new Date();
+  todayField.value = today.getFullYear() + "-" + pad2(today.getMonth() + 1) + "-" + pad2(today.getDate());
+  refreshOutput();
+
+  window.addEventListener("beforeunload", function (e) {
+    var hasContent = SECTIONS.some(function (section) {
+      return document.getElementById("section-" + section.id).value.trim().length > 0;
+    });
+    if (hasContent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+})();
+</script>
+</body>
+</html>
